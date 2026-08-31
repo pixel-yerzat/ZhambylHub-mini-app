@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Code2, Rocket, Briefcase, Users, 
-  Sparkles, Check, ChevronRight, ShieldCheck 
+  Check, ChevronRight, ShieldAlert 
 } from 'lucide-react';
 import { hapticFeedback } from '../utils/telegram';
 
 export const RoleSelectionModal = () => {
-  const { user, setUser, updateUserRole, lang } = useApp();
+  const { user, updateUserRole, lang } = useApp();
 
   const [selectedRole, setSelectedRole] = useState(user.role || 'developer');
   const [skillsOrInterest, setSkillsOrInterest] = useState(user.skillsOrInterest || '');
@@ -25,7 +25,7 @@ export const RoleSelectionModal = () => {
     {
       id: 'founder',
       title: lang === 'ru' ? 'Фаундер / Стартапер' : 'Фаундер / Стартапер',
-      desc: lang === 'ru' ? 'Развиваю стартап, ищу команду и инвестиции' : 'Стартап дамытамын, инвестиция іздеймін',
+      desc: lang === 'ru' ? 'Загружаю PDF питч-дек, ищу инвестиции и команду' : 'PDF питч-дек жүктеймін, инвестиция іздеймін',
       icon: Rocket,
       badgeColor: 'badge-violet',
       defaultTag: 'Startup Founder & Lead'
@@ -33,7 +33,7 @@ export const RoleSelectionModal = () => {
     {
       id: 'investor',
       title: lang === 'ru' ? 'Инвестор / Бизнес-ангел' : 'Инвестор / Бизнес-періште',
-      desc: lang === 'ru' ? 'Ищу перспективные IT-проекты региона' : 'Өңірдің IT жобаларына инвестиция саламын',
+      desc: lang === 'ru' ? 'Изучаю PDF презентации проектов региона' : 'Өңірдің IT жобаларының PDF дектерін қараймын',
       icon: Briefcase,
       badgeColor: 'badge-amber',
       defaultTag: 'Venture / Angel Investor'
@@ -41,10 +41,18 @@ export const RoleSelectionModal = () => {
     {
       id: 'community',
       title: lang === 'ru' ? 'Комьюнити / Гость' : 'Қоғамдастық / Қонақ',
-      desc: lang === 'ru' ? 'Посещаю ивенты, учусь и нахожу друзей' : 'Іс-шараларға қатысып, жаңа білім аламын',
+      desc: lang === 'ru' ? 'Посещаю ивенты, учусь и нахожу единомышленников' : 'Іс-шараларға қатысып, білім аламын',
       icon: Users,
       badgeColor: 'badge-blue',
       defaultTag: 'Community Member'
+    },
+    {
+      id: 'moderator',
+      title: lang === 'ru' ? 'Модератор / Команда Hub' : 'Модератор / Hub Командасы',
+      desc: lang === 'ru' ? 'Создаю ивенты, модерирую стартапы и команды' : 'Іс-шаралар құрамын, жобаларды тексеремін',
+      icon: ShieldAlert,
+      badgeColor: 'badge-violet',
+      defaultTag: 'Zhambyl Hub Administrator'
     }
   ];
 
@@ -71,12 +79,11 @@ export const RoleSelectionModal = () => {
   return (
     <div className="modal-overlay z-50">
       <div 
-        className="modal-sheet max-w-md max-h-[92vh] flex flex-col p-6 space-y-5"
+        className="modal-sheet max-w-md max-h-[92vh] flex flex-col p-5 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="text-center space-y-2">
-          {/* Eyebrow */}
+        <div className="text-center space-y-1.5 pt-1">
           <div className="eyebrow-container">
             <div className="eyebrow-line"></div>
             <span className="eyebrow-text">
@@ -85,19 +92,19 @@ export const RoleSelectionModal = () => {
             <div className="eyebrow-line"></div>
           </div>
 
-          <h2 className="font-display text-2xl font-bold text-gradient-skywash leading-tight">
+          <h2 className="font-display text-xl font-bold text-gradient-skywash leading-tight">
             {lang === 'ru' ? 'Кто вы в Zhambyl Hub?' : 'Zhambyl Hub-тағы рөліңіз?'}
           </h2>
 
           <p className="text-xs text-[#c7d3ea] leading-relaxed max-w-xs mx-auto">
             {lang === 'ru'
-              ? 'Выберите вашу роль, чтобы персонализировать рекомендации мероприятий и проектов.'
-              : 'Іс-шаралар мен жобаларды бейімдеу үшін негізгі рөліңізді таңдаңыз.'}
+              ? 'Выберите роль в экосистеме. Данные сохраняются в Supabase.'
+              : 'Экожүйедегі рөліңізді таңдаңыз.'}
           </p>
         </div>
 
         {/* Roles List */}
-        <div className="space-y-2.5">
+        <div className="space-y-2 max-h-[50vh] overflow-y-auto no-scrollbar pr-1">
           {roles.map((r) => {
             const Icon = r.icon;
             const isSelected = selectedRole === r.id;
@@ -106,18 +113,18 @@ export const RoleSelectionModal = () => {
               <div
                 key={r.id}
                 onClick={() => handleSelect(r.id)}
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+                className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
                   isSelected
                     ? 'bg-[rgba(102,58,243,0.18)] border-[#663af3] shadow-[0_0_16px_rgba(102,58,243,0.3)]'
                     : 'bg-[rgba(186,214,247,0.03)] border-[rgba(186,215,247,0.1)] hover:bg-[rgba(186,214,247,0.06)]'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
                   isSelected 
                     ? 'bg-[#663af3] text-white shadow-[0_0_10px_#663af3]' 
                     : 'bg-[rgba(186,214,247,0.06)] text-[#d1e4fa]'
                 }`}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -131,7 +138,7 @@ export const RoleSelectionModal = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#9da7ba] mt-0.5 leading-relaxed">
+                  <p className="text-xs text-[#9da7ba] mt-0.5 leading-snug">
                     {r.desc}
                   </p>
                 </div>
@@ -144,8 +151,8 @@ export const RoleSelectionModal = () => {
         <div>
           <label className="text-[11px] text-[#9da7ba]">
             {lang === 'ru' 
-              ? 'Специализация / Стартап / Организация (необязательно):' 
-              : 'Мамандығыңыз / Стартап / Мекеме (міндетті емес):'}
+              ? 'Специализация / Стартап / Должность (необязательно):' 
+              : 'Мамандығыңыз / Стартап / Қызметіңіз:'}
           </label>
           <input
             type="text"
@@ -155,33 +162,27 @@ export const RoleSelectionModal = () => {
               selectedRole === 'developer' 
                 ? 'Например: React, Python, AI' 
                 : selectedRole === 'founder' 
-                ? 'Название проекта или идея' 
+                ? 'Название стартапа' 
+                : selectedRole === 'moderator'
+                ? 'Менеджер проектов / Координатор'
                 : 'Сфера интересов'
             }
-            className="glass-input text-xs mt-1.5"
+            className="glass-input text-xs mt-1"
           />
         </div>
 
-        {/* Bonus Notification & Submit CTA */}
-        <div className="space-y-3 pt-1">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-[rgba(102,58,243,0.12)] border border-[rgba(102,58,243,0.3)] text-xs">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#d8ecf8]" />
-              <span className="text-white font-medium">Приветственный бонус:</span>
-            </div>
-            <span className="font-mono font-bold text-[#d8ecf8]">+100 pts</span>
-          </div>
-
+        {/* Submit CTA */}
+        <div className="pt-1">
           <button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="w-full btn-violet text-sm py-3 font-semibold justify-center"
+            className="w-full btn-violet text-xs !py-3 font-semibold justify-center shadow-[0_0_20px_rgba(102,58,243,0.4)]"
           >
             {isSubmitting ? (
               <span>Сохранение в Supabase...</span>
             ) : (
               <>
-                <span>{lang === 'ru' ? 'Начать знакомство с Hub' : 'Бастау'}</span>
+                <span>{lang === 'ru' ? 'Войти в Zhambyl Hub' : 'Кіру'}</span>
                 <ChevronRight className="w-4 h-4" />
               </>
             )}

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Home, Calendar, Rocket, Award, User } from 'lucide-react';
+import { Home, Calendar, Rocket, User } from 'lucide-react';
 import { hapticFeedback } from '../utils/telegram';
 import { useApp } from '../context/AppContext';
 
 export const BottomNav = ({ activeTab, setActiveTab }) => {
-  const { lang, myTickets } = useApp();
+  const { lang, myRegistrations } = useApp();
 
   const handleTabChange = (tabId) => {
     hapticFeedback.selection();
@@ -29,15 +29,10 @@ export const BottomNav = ({ activeTab, setActiveTab }) => {
       icon: Rocket
     },
     {
-      id: 'rewards',
-      label: lang === 'ru' ? 'Баллы' : 'Ұпайлар',
-      icon: Award
-    },
-    {
       id: 'profile',
       label: lang === 'ru' ? 'Профиль' : 'Профиль',
       icon: User,
-      badgeCount: myTickets.length > 0 ? myTickets.length : null
+      badgeCount: myRegistrations?.length > 0 ? myRegistrations.length : null
     }
   ];
 

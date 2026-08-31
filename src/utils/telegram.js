@@ -1,5 +1,5 @@
 /**
- * Telegram WebApp Helpers & Haptic Feedback
+ * Telegram WebApp Helpers & Haptic Feedback & Theme Detection
  */
 
 export const getTelegramWebApp = () => {
@@ -14,7 +14,6 @@ export const initTelegramApp = () => {
   if (tg) {
     tg.ready();
     tg.expand();
-    // Enable closing confirmation if needed
     try {
       tg.enableClosingConfirmation?.();
     } catch (e) {
@@ -23,17 +22,28 @@ export const initTelegramApp = () => {
   }
 };
 
+export const getSystemTheme = () => {
+  const tg = getTelegramWebApp();
+  if (tg?.colorScheme) {
+    return tg.colorScheme; // 'light' | 'dark'
+  }
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'dark';
+};
+
 export const hapticFeedback = {
   impact: (style = 'medium') => {
     const tg = getTelegramWebApp();
     if (tg?.HapticFeedback?.impactOccurred) {
-      tg.HapticFeedback.impactOccurred(style); // 'light' | 'medium' | 'heavy' | 'rigid' | 'soft'
+      tg.HapticFeedback.impactOccurred(style);
     }
   },
   notification: (type = 'success') => {
     const tg = getTelegramWebApp();
     if (tg?.HapticFeedback?.notificationOccurred) {
-      tg.HapticFeedback.notificationOccurred(type); // 'error' | 'success' | 'warning'
+      tg.HapticFeedback.notificationOccurred(type);
     }
   },
   selection: () => {
@@ -57,9 +67,8 @@ export const getTelegramUser = () => {
     };
   }
 
-  // Fallback demo user for browser preview
   return {
-    id: 777001,
+    id: '777001',
     firstName: 'Yerzat',
     lastName: 'Innovator',
     username: 'yerzat_taraz',

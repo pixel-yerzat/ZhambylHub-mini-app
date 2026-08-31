@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  Sparkles, Calendar, Rocket, Presentation, ChevronRight, 
-  MapPin, Clock, Trophy, Flame, CheckCircle, Plus, 
-  Cpu, Users, Award
+  Calendar, Rocket, Presentation, ChevronRight, 
+  MapPin, Plus, Cpu, Users, Award, FileText, 
+  CheckCircle2, Star, GraduationCap, Flame, Sparkles, Building2 
 } from 'lucide-react';
 import { hapticFeedback } from '../utils/telegram';
 
@@ -11,12 +11,10 @@ export const HomeView = ({ setActiveTab }) => {
   const { 
     events, 
     projects, 
-    points, 
-    quests, 
-    claimDaily, 
     openModal, 
     lang, 
-    myTickets 
+    myRegistrations,
+    user 
   } = useApp();
 
   const [eventFilter, setEventFilter] = useState('all');
@@ -82,19 +80,15 @@ export const HomeView = ({ setActiveTab }) => {
           </button>
         </div>
 
-        {/* 3-Column Stats Card */}
-        <div className="hero-stats-card">
+        {/* 2-Column Stats Card */}
+        <div className="hero-stats-card max-w-xs grid-cols-2">
           <div className="stat-item">
             <span className="stat-number">{events.length}</span>
             <span className="stat-label">{lang === 'ru' ? 'Ивента' : 'Шара'}</span>
           </div>
           <div className="stat-item bordered">
-            <span className="stat-number">{projects.length}</span>
+            <span className="stat-number text-[#b6d9fc]">{projects.length}</span>
             <span className="stat-label">{lang === 'ru' ? 'Стартапа' : 'Жоба'}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number text-[#a78bfa]">{points.toLocaleString()}</span>
-            <span className="stat-label">{lang === 'ru' ? 'Ваши pts' : 'Ұпайыңыз'}</span>
           </div>
         </div>
       </section>
@@ -107,7 +101,7 @@ export const HomeView = ({ setActiveTab }) => {
             className="feature-nav-btn"
           >
             <div className="feature-icon-circle">
-              <Rocket className="w-5 h-5" />
+              <Rocket className="w-5 h-5 text-[#a78bfa]" />
             </div>
             <span className="feature-nav-label">Питч-деки</span>
           </button>
@@ -117,7 +111,7 @@ export const HomeView = ({ setActiveTab }) => {
             className="feature-nav-btn"
           >
             <div className="feature-icon-circle">
-              <Calendar className="w-5 h-5" />
+              <Calendar className="w-5 h-5 text-[#663af3]" />
             </div>
             <span className="feature-nav-label">Хакатоны</span>
           </button>
@@ -127,19 +121,19 @@ export const HomeView = ({ setActiveTab }) => {
             className="feature-nav-btn"
           >
             <div className="feature-icon-circle">
-              <Cpu className="w-5 h-5" />
+              <Cpu className="w-5 h-5 text-[#80cbc4]" />
             </div>
             <span className="feature-nav-label">AI & Лаб</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('rewards')}
+            onClick={() => setActiveTab('profile')}
             className="feature-nav-btn"
           >
             <div className="feature-icon-circle">
-              <Sparkles className="w-5 h-5" />
+              <Users className="w-5 h-5 text-[#90caf9]" />
             </div>
-            <span className="feature-nav-label">Баллы</span>
+            <span className="feature-nav-label">Комьюнити</span>
           </button>
         </div>
       </section>
@@ -157,15 +151,26 @@ export const HomeView = ({ setActiveTab }) => {
 
           <div
             onClick={() => handleOpenEvent(hotEvent)}
-            className="glass-card cursor-pointer group"
+            className="glass-card cursor-pointer group space-y-3"
           >
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="badge badge-violet">
-                {hotEvent.hasProjects ? '🚀 Хакатон с проектами' : 'Воркшоп'}
+            {/* Event Cover Image */}
+            {hotEvent.imageUrl || hotEvent.image_url ? (
+              <div className="w-full h-36 rounded-xl overflow-hidden mb-2 border border-[rgba(186,215,247,0.1)]">
+                <img 
+                  src={hotEvent.imageUrl || hotEvent.image_url} 
+                  alt={hotEvent.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ) : null}
+
+            <div className="flex items-center justify-between gap-2">
+              <span className="badge badge-violet flex items-center gap-1">
+                <Rocket className="w-3 h-3 text-[#a78bfa]" />
+                <span>{hotEvent.hasProjects ? 'Хакатон с защитой' : 'Воркшоп'}</span>
               </span>
-              <span className="text-xs font-mono text-[#d8ecf8] flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-[#663af3]" />
-                +{hotEvent.rewardPoints} pts
+              <span className="text-xs text-[#d8ecf8] font-mono">
+                {hotEvent.date}
               </span>
             </div>
 
@@ -173,14 +178,14 @@ export const HomeView = ({ setActiveTab }) => {
               {hotEvent.title}
             </h3>
 
-            <p className="text-xs text-[#c7d3ea] line-clamp-2 mt-2 leading-relaxed">
+            <p className="text-xs text-[#c7d3ea] line-clamp-2 leading-relaxed">
               {hotEvent.shortDesc}
             </p>
 
-            <div className="flex items-center justify-between pt-3 mt-4 border-t border-[rgba(186,215,247,0.08)] text-xs text-[#9da7ba]">
+            <div className="flex items-center justify-between pt-3 mt-2 border-t border-[rgba(186,215,247,0.08)] text-xs text-[#9da7ba]">
               <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#663af3]" />
-                <span className="text-[#d1e4fa]">{hotEvent.date}</span>
+                <MapPin className="w-3.5 h-3.5 text-[#269684]" />
+                <span className="text-[#d1e4fa]">{hotEvent.locationShort}</span>
               </div>
               <div className="flex items-center gap-1 text-[#d8ecf8] font-medium group-hover:translate-x-0.5 transition-transform">
                 <span>{lang === 'ru' ? 'Регистрация' : 'Тіркелу'}</span>
@@ -223,9 +228,10 @@ export const HomeView = ({ setActiveTab }) => {
               hapticFeedback.selection();
               setEventFilter('with_projects');
             }}
-            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 ${eventFilter === 'with_projects' ? 'btn-pill-active' : ''}`}
+            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 flex items-center gap-1.5 ${eventFilter === 'with_projects' ? 'btn-pill-active' : ''}`}
           >
-            🚀 {lang === 'ru' ? 'С защитой проектов' : 'Жобалармен'}
+            <Rocket className="w-3.5 h-3.5" />
+            <span>{lang === 'ru' ? 'С защитой проектов' : 'Жобалармен'}</span>
           </button>
 
           <button
@@ -233,54 +239,64 @@ export const HomeView = ({ setActiveTab }) => {
               hapticFeedback.selection();
               setEventFilter('without_projects');
             }}
-            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 ${eventFilter === 'without_projects' ? 'btn-pill-active' : ''}`}
+            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 flex items-center gap-1.5 ${eventFilter === 'without_projects' ? 'btn-pill-active' : ''}`}
           >
-            🎓 {lang === 'ru' ? 'Без проектов' : 'Жобасыз'}
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>{lang === 'ru' ? 'Без проектов' : 'Жобасыз'}</span>
           </button>
         </div>
 
         {/* Events Cards */}
         <div className="flex flex-col gap-3">
-          {filteredEvents.slice(0, 3).map((ev) => {
-            const isRegistered = myTickets.some(t => t.eventId === ev.id);
+          {filteredEvents.length === 0 ? (
+            <div className="glass-card p-6 text-center space-y-2">
+              <Calendar className="w-7 h-7 text-[#9da7ba] mx-auto opacity-40" />
+              <p className="text-xs font-semibold text-white">Мероприятия скоро появятся</p>
+              <p className="text-[11px] text-[#9da7ba]">
+                Организаторы добавляют новые события в экосистему.
+              </p>
+            </div>
+          ) : (
+            filteredEvents.slice(0, 3).map((ev) => {
+              const isRegistered = myRegistrations?.some(r => r.eventId === ev.id || r.event_id === ev.id);
 
-            return (
-              <div
-                key={ev.id}
-                onClick={() => handleOpenEvent(ev)}
-                className="glass-card cursor-pointer transition-all active:scale-[0.99]"
-              >
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className={`badge ${ev.hasProjects ? 'badge-violet' : 'badge-teal'}`}>
-                    {ev.hasProjects ? 'С защитой проектов' : 'Лекция / Воркшоп'}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {isRegistered && (
-                      <span className="badge badge-teal">✓ Билет</span>
-                    )}
-                    <span className="font-mono text-xs text-[#a78bfa]">
-                      +{ev.rewardPoints} pts
+              return (
+                <div
+                  key={ev.id}
+                  onClick={() => handleOpenEvent(ev)}
+                  className="glass-card cursor-pointer transition-all active:scale-[0.99] space-y-2.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`badge ${ev.hasProjects ? 'badge-violet' : 'badge-teal'} flex items-center gap-1`}>
+                      {ev.hasProjects ? <Rocket className="w-3 h-3" /> : <GraduationCap className="w-3 h-3" />}
+                      <span>{ev.hasProjects ? 'С защитой проектов' : 'Лекция / Воркшоп'}</span>
                     </span>
+                    {isRegistered && (
+                      <span className="badge badge-teal flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-[#269684]" />
+                        <span>Вы записаны</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <h4 className="font-display text-sm font-semibold text-white leading-snug">
+                    {lang === 'ru' ? ev.title : (ev.titleKz || ev.title)}
+                  </h4>
+
+                  <div className="flex items-center justify-between text-xs text-[#9da7ba] pt-2.5 border-t border-[rgba(186,215,247,0.08)]">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#663af3]" />
+                      <span>{ev.date}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[#c7d3ea]">
+                      <MapPin className="w-3.5 h-3.5 text-[#269684]" />
+                      <span className="truncate max-w-[130px]">{ev.locationShort}</span>
+                    </div>
                   </div>
                 </div>
-
-                <h4 className="font-display text-sm font-semibold text-white leading-snug">
-                  {lang === 'ru' ? ev.title : (ev.titleKz || ev.title)}
-                </h4>
-
-                <div className="flex items-center justify-between text-xs text-[#9da7ba] pt-3 mt-3 border-t border-[rgba(186,215,247,0.08)]">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#663af3]" />
-                    <span>{ev.date}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[#c7d3ea]">
-                    <MapPin className="w-3.5 h-3.5 text-[#269684]" />
-                    <span className="truncate max-w-[130px]">{ev.locationShort}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </section>
 
@@ -304,51 +320,69 @@ export const HomeView = ({ setActiveTab }) => {
 
         <p className="text-xs text-[#9da7ba] px-1">
           {lang === 'ru'
-            ? 'Листайте слайды питч-деков, ставьте оценки и получайте +35 Hub Points за разбор.'
-            : 'Питч-дек слайдтарын қарап, баға беріңіз және +35 ұпай алыңыз.'}
+            ? 'Листайте PDF-деки стартапов и знакомьтесь с проектами региона.'
+            : 'PDF-дектерді қарап, өңір жобаларымен танысыңыз.'}
         </p>
 
         {/* Deck Cards */}
         <div className="flex flex-col gap-3">
-          {featuredProjects.map((proj) => (
-            <div
-              key={proj.id}
-              onClick={() => handleOpenDeck(proj)}
-              className="glass-card cursor-pointer transition-all group"
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] flex items-center justify-center text-xl shrink-0">
-                    {proj.logoIcon}
+          {featuredProjects.length === 0 ? (
+            <div className="glass-card p-6 text-center space-y-2">
+              <Rocket className="w-7 h-7 text-[#9da7ba] mx-auto opacity-40" />
+              <p className="text-xs font-semibold text-white">Стартапы еще не добавлены</p>
+              <button
+                onClick={() => openModal('submit-project')}
+                className="btn-violet text-xs !py-1.5 !px-3.5 mt-2"
+              >
+                + Загрузить PDF питч-дек
+              </button>
+            </div>
+          ) : (
+            featuredProjects.map((proj) => (
+              <div
+                key={proj.id}
+                onClick={() => handleOpenDeck(proj)}
+                className="glass-card cursor-pointer transition-all group"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.14)] flex items-center justify-center text-[#d8ecf8] shrink-0">
+                      <Rocket className="w-5 h-5 text-[#663af3]" />
+                    </div>
+                    <div>
+                      <h4 className="font-display text-sm font-semibold text-white group-hover:text-[#d8ecf8] transition-colors">
+                        {proj.name}
+                      </h4>
+                      <p className="text-xs text-[#9da7ba]">
+                        {proj.founder} · <span className="text-[#269684]">{proj.stage}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-display text-sm font-semibold text-white group-hover:text-[#d8ecf8] transition-colors">
-                      {proj.name}
-                    </h4>
-                    <p className="text-xs text-[#9da7ba]">
-                      {proj.founder} · <span className="text-[#269684]">{proj.stage}</span>
-                    </p>
-                  </div>
+
+                  <span className="badge badge-violet font-mono text-[11px] shrink-0">
+                    PDF Deck
+                  </span>
                 </div>
 
-                <span className="badge badge-violet font-mono text-[11px] shrink-0">
-                  {proj.presentation?.slidesCount || 5} слайдов
-                </span>
-              </div>
+                <p className="text-xs text-[#c7d3ea] line-clamp-2 leading-relaxed">
+                  {proj.shortDesc}
+                </p>
 
-              <p className="text-xs text-[#c7d3ea] line-clamp-2 leading-relaxed">
-                {proj.shortDesc}
-              </p>
-
-              <div className="flex items-center justify-between pt-3 mt-3 border-t border-[rgba(186,215,247,0.08)] text-xs">
-                <span className="text-[#ffab91]">★ {proj.rating} ({proj.reviewsCount})</span>
-                <span className="text-[#d8ecf8] font-medium flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                  <span>{lang === 'ru' ? 'Смотреть слайды' : 'Слайдты көру'}</span>
-                  <ChevronRight className="w-3 h-3 text-[#663af3]" />
-                </span>
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-[rgba(186,215,247,0.08)] text-xs">
+                  <div className="flex items-center gap-1 text-[#ffab91]">
+                    <Star className="w-3.5 h-3.5 fill-[#ffab91]" />
+                    <span className="font-semibold">{proj.rating}</span>
+                    <span className="text-[#9da7ba]">({proj.reviewsCount})</span>
+                  </div>
+                  <div className="text-[#d8ecf8] font-medium flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                    <FileText className="w-3.5 h-3.5 text-[#663af3]" />
+                    <span>{lang === 'ru' ? 'Смотреть PDF' : 'PDF көру'}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-[#663af3]" />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
     </div>

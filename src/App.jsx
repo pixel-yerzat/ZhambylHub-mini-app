@@ -12,6 +12,7 @@ import { PresentationViewerModal } from './components/PresentationViewerModal';
 import { EventDetailModal } from './components/EventDetailModal';
 import { TicketModal } from './components/TicketModal';
 import { SubmitProjectModal } from './components/SubmitProjectModal';
+import { CreateEventModal } from './components/CreateEventModal';
 import { RoleSelectionModal } from './components/RoleSelectionModal';
 import { NotificationToast } from './components/NotificationToast';
 
@@ -22,6 +23,11 @@ function AppContent() {
   useEffect(() => {
     initTelegramApp();
   }, []);
+
+  // Fix page jumping: reset scroll position immediately when changing tabs
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeTab]);
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -50,14 +56,14 @@ function AppContent() {
 
       {/* Mobile TMA Viewport Container */}
       <div className="app-viewport">
-        {/* Sticky Glass Header */}
+        {/* Sticky Glass Header with Fixed Standard Height */}
         <Header />
 
         {/* In-App Toast Notifications */}
         <NotificationToast />
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full max-w-md mx-auto">
+        <main className="w-full flex-1 flex flex-col">
           {renderActiveTab()}
         </main>
 
@@ -75,11 +81,7 @@ function AppContent() {
         {activeModal === 'event-detail' && <EventDetailModal />}
         {activeModal === 'ticket' && <TicketModal />}
         {activeModal === 'submit-project' && <SubmitProjectModal />}
-        {activeModal === 'rewards' && (
-          <div className="modal-overlay" onClick={() => {}}>
-            {setActiveTab('rewards')}
-          </div>
-        )}
+        {activeModal === 'create-event' && <CreateEventModal />}
       </div>
     </div>
   );

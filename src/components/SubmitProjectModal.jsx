@@ -1,283 +1,293 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Rocket, Sparkles, Plus, Trash2 } from 'lucide-react';
+import { 
+  Rocket, X, UploadCloud, FileText, CheckCircle, 
+  Sparkles, AlertCircle, Trash2, AlertTriangle, ShieldCheck 
+} from 'lucide-react';
 import { hapticFeedback } from '../utils/telegram';
+import { uploadPitchDeckPdfToSupabase } from '../services/supabase';
+
+const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 export const SubmitProjectModal = () => {
-  const { closeModal, addNewProject, lang } = useApp();
+  const { closeModal, addNewProject, user, lang, showToast } = useApp();
+  const fileInputRef = useRef(null);
 
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('AI & Machine Learning');
-  const [tag, setTag] = useState('AI / Smart City');
-  const [stage, setStage] = useState('MVP / Prototype');
-  const [shortDesc, setShortDesc] = useState('');
-  const [logoIcon, setLogoIcon] = useState('💡');
-  
-  const [slides, setSlides] = useState([
-    {
-      slideNumber: 1,
-      title: 'Титульный слайд: Название & Концепт',
-      subtitle: 'Краткое позиционирование вашего стартапа',
-      type: 'cover',
-      badge: 'Cover',
-      highlights: ['Zhambyl Hub Ecosystem', 'Target: Kazakhstan & CA'],
-      content: ''
-    },
-    {
-      slideNumber: 2,
-      title: 'Проблема: Какую боль решаем?',
-      subtitle: 'Кто страдает от этой проблемы и сколько денег теряется?',
-      type: 'problem',
-      badge: 'Problem',
-      highlights: ['Ключевая боль клиентов', 'Текущие неэффективные решения'],
-      content: ''
-    },
-    {
-      slideNumber: 3,
-      title: 'Решение & Технология',
-      subtitle: 'Как именно наш продукт закрывает эту проблему',
-      type: 'solution',
-      badge: 'Solution',
-      highlights: ['Уникальное торговое предложение', 'Инновационный стек технологий'],
-      content: ''
-    },
-    {
-      slideNumber: 4,
-      title: 'Команда & The Ask',
-      subtitle: 'Необходимые ресурсы и инвестиции',
-      type: 'team_ask',
-      badge: 'The Ask',
-      highlights: ['Поиск кофаундеров и менторов', 'Цель: запуск пилота в Таразе'],
-      content: ''
+  const [formData, setFormData] = useState({
+    name: '',
+    category: 'AI & Machine Learning',
+    stage: 'MVP / Prototype',
+    tag: 'Startup',
+    shortDesc: '',
+    logoIcon: 'Rocket',
+    pdfUrl: '',
+    pdfFileName: '',
+    pdfFileSize: ''
+  });
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileError, setFileError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    setFileError('');
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      hapticFeedback.notification('error');
+      setFileError('Разрешены только файлы формата PDF (.pdf)');
+      return;
     }
-  ]);
 
-  const handleSlideChange = (index, field, value) => {
-    setSlides(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
-  };
+    if (file.size > MAX_PDF_SIZE_BYTES) {
+      hapticFeedback.notification('error');
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      setFileError(`Файл слишком большой (${sizeMb} MB). Лимит: 10 MB.`);
+      return;
+    }
 
-  const addCustomSlide = () => {
     hapticFeedback.impact('light');
-    const newIndex = slides.length + 1;
-    setSlides(prev => [
+    setSelectedFile(file);
+    setFormData(prev => ({
       ...prev,
-      {
-        slideNumber: newIndex,
-        title: `Слайд ${newIndex}: Новый раздел`,
-        subtitle: 'Описание слайда',
-        type: 'custom',
-        badge: `Slide ${newIndex}`,
-        highlights: ['Ключевой тезис 1', 'Ключевой тезис 2'],
-        content: ''
-      }
-    ]);
+      pdfFileName: file.name,
+      pdfFileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+    }));
   };
 
-  const removeSlide = (index) => {
-    if (slides.length <= 2) return;
-    hapticFeedback.impact('light');
-    setSlides(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !shortDesc) return;
+    if (!formData.name.trim() || !formData.shortDesc.trim()) return;
 
-    const updatedSlides = slides.map((s, idx) => {
-      if (idx === 0) {
-        return { ...s, title: name, subtitle: shortDesc, content: shortDesc };
+    if (!selectedFile && !formData.pdfUrl.trim()) {
+      setFileError('Пожалуйста, выберите PDF-файл презентации или вставьте ссылку на PDF');
+      hapticFeedback.notification('error');
+      return;
+    }
+
+    setIsUploading(true);
+    hapticFeedback.impact('heavy');
+
+    let finalPdfUrl = formData.pdfUrl.trim();
+    let finalFileName = formData.pdfFileName || `${formData.name}_pitch_deck.pdf`;
+    let finalFileSize = formData.pdfFileSize || '2.4 MB';
+
+    if (selectedFile) {
+      const uploadRes = await uploadPitchDeckPdfToSupabase(selectedFile, user.id);
+      if (!uploadRes.success) {
+        setIsUploading(false);
+        setFileError(uploadRes.error || 'Ошибка загрузки файла');
+        hapticFeedback.notification('error');
+        return;
       }
-      return s;
+      finalPdfUrl = uploadRes.url;
+      finalFileName = uploadRes.fileName;
+      finalFileSize = uploadRes.fileSize;
+    }
+
+    await addNewProject({
+      name: formData.name,
+      category: formData.category,
+      stage: formData.stage,
+      tag: formData.tag,
+      shortDesc: formData.shortDesc,
+      logoIcon: formData.logoIcon,
+      pdfDeckUrl: finalPdfUrl,
+      pdfDeckName: finalFileName,
+      pdfDeckSize: finalFileSize,
+      status: user.role === 'moderator' ? 'approved' : 'pending'
     });
 
-    addNewProject({
-      name,
-      category,
-      tag,
-      stage,
-      shortDesc,
-      logoIcon,
-      slides: updatedSlides
-    });
-
+    setIsUploading(false);
     closeModal();
   };
-
-  const icons = ['💡', '🚀', '🌾', '🏛️', '🩺', '🤖', '⚡', '💻', '🌐', '🛡️', '📊', '🎓'];
 
   return (
     <div className="modal-overlay" onClick={closeModal}>
       <div 
-        className="modal-sheet max-w-md max-h-[92vh] flex flex-col"
+        className="modal-sheet max-w-md flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Bar */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-[rgba(186,215,247,0.12)]">
-          <div className="flex items-center gap-2">
-            <Rocket className="w-4 h-4 text-[#663af3]" />
-            <span className="font-display text-xs font-semibold text-white uppercase tracking-wider">
-              {lang === 'ru' ? 'Подать проект в Hub' : 'Жобаны ұсыну'}
-            </span>
+        {/* Handle Bar */}
+        <div className="modal-handle-bar"></div>
+
+        {/* Modal Header */}
+        <div className="px-6 pt-3 pb-4 flex items-start justify-between gap-3 border-b border-[rgba(186,215,247,0.12)]">
+          <div className="space-y-1 min-w-0 flex-1">
+            <h2 className="font-display text-xl font-bold text-white leading-tight">
+              {lang === 'ru' ? 'Подать стартап & PDF' : 'Жобаны және PDF декті қосу'}
+            </h2>
+            <p className="text-xs text-[#9da7ba] leading-relaxed">
+              Заполните информацию о проекте для каталога стартапов.
+            </p>
           </div>
-          <button
+
+          <button 
             onClick={closeModal}
-            className="btn-ghost-pill !p-1.5 text-[#c7d3ea]"
+            className="w-8 h-8 rounded-full bg-[rgba(186,214,247,0.08)] hover:bg-[rgba(186,214,247,0.16)] text-[#9da7ba] hover:text-white flex items-center justify-center transition-colors shrink-0 mt-0.5"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div className="glass-card p-4 space-y-3">
-            <h4 className="font-display text-xs font-semibold text-white uppercase tracking-wider">
-              {lang === 'ru' ? 'Основная информация' : 'Негізгі ақпарат'}
-            </h4>
-
-            {/* Icon Picker */}
-            <div>
-              <label className="text-[11px] text-[#9da7ba]">Иконка проекта:</label>
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {icons.map((ic) => (
-                  <button
-                    key={ic}
-                    type="button"
-                    onClick={() => setLogoIcon(ic)}
-                    className={`w-7 h-7 rounded-full text-sm flex items-center justify-center transition-all ${
-                      logoIcon === ic 
-                        ? 'bg-[#663af3] ring-1 ring-white scale-110 shadow-[0_0_8px_#663af3]' 
-                        : 'bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)]'
-                    }`}
-                  >
-                    {ic}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] text-[#9da7ba]">Название стартапа:</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Например: Taraz AI Waste"
-                className="glass-input text-xs mt-1"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[11px] text-[#9da7ba]">Индустрия:</label>
-                <select
-                  value={category}
-                  onChange={(e) => {
-                    setCategory(e.target.value);
-                    setTag(e.target.value.split(' ')[0]);
-                  }}
-                  className="glass-input text-xs mt-1 bg-[#05060f] text-white"
-                >
-                  <option value="AI & Machine Learning">AI & ML</option>
-                  <option value="AgroTech & IoT">AgroTech</option>
-                  <option value="GovTech & Smart City">GovTech</option>
-                  <option value="MedTech & Health">MedTech</option>
-                  <option value="EdTech & Education">EdTech</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[11px] text-[#9da7ba]">Стадия:</label>
-                <select
-                  value={stage}
-                  onChange={(e) => setStage(e.target.value)}
-                  className="glass-input text-xs mt-1 bg-[#05060f] text-white"
-                >
-                  <option value="Idea / Концепт">Idea</option>
-                  <option value="MVP / Прототип">MVP</option>
-                  <option value="Pilot / Пилот">Pilot</option>
-                  <option value="Scaling / Рост">Scaling</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] text-[#9da7ba]">Краткое описание:</label>
-              <textarea
-                required
-                rows={2}
-                value={shortDesc}
-                onChange={(e) => setShortDesc(e.target.value)}
-                placeholder="Что делает ваш продукт..."
-                className="glass-input text-xs mt-1 resize-none"
-              />
-            </div>
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto no-scrollbar px-6 py-5 flex-1">
+          {/* Project Name */}
+          <div className="space-y-1.5">
+            <label className="form-label">Название стартапа / проекта *</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Например: Taraz AgroTech AI"
+              className="glass-input text-xs"
+            />
           </div>
 
-          {/* Slide Deck Builder */}
-          <div className="glass-card p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-display text-xs font-semibold text-white uppercase tracking-wider">
-                Слайды презентации ({slides.length})
-              </h4>
-              <button
-                type="button"
-                onClick={addCustomSlide}
-                className="btn-ghost-pill text-xs !py-1 !px-2 text-[#d8ecf8]"
+          {/* Category & Stage */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="form-label">Сфера</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value, tag: e.target.value.split(' ')[0] })}
+                className="glass-input text-xs bg-[#090c1a]"
               >
-                <Plus className="w-3 h-3" /> Слайд
-              </button>
+                <option value="AI & Data">AI & Machine Learning</option>
+                <option value="AgroTech">AgroTech</option>
+                <option value="GovTech">GovTech</option>
+                <option value="MedTech">MedTech</option>
+                <option value="EdTech">EdTech</option>
+                <option value="FinTech">FinTech</option>
+              </select>
             </div>
 
-            <div className="space-y-2.5 pt-1">
-              {slides.map((s, idx) => (
-                <div 
-                  key={idx}
-                  className="p-2.5 rounded-xl bg-[rgba(186,214,247,0.04)] border border-[rgba(186,215,247,0.08)] space-y-1.5"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="badge badge-violet text-[10px]">
-                      Слайд {idx + 1}
-                    </span>
-                    {slides.length > 2 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSlide(idx)}
-                        className="text-[#9da7ba] hover:text-[#e46d4c] p-0.5 transition-all"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-
-                  <input
-                    type="text"
-                    value={s.title}
-                    onChange={(e) => handleSlideChange(idx, 'title', e.target.value)}
-                    placeholder="Заголовок слайда"
-                    className="glass-input text-xs !py-1 font-semibold"
-                  />
-
-                  <input
-                    type="text"
-                    value={s.subtitle || ''}
-                    onChange={(e) => handleSlideChange(idx, 'subtitle', e.target.value)}
-                    placeholder="Подзаголовок"
-                    className="glass-input text-xs !py-1 text-[#c7d3ea]"
-                  />
-                </div>
-              ))}
+            <div className="space-y-1.5">
+              <label className="form-label">Стадия</label>
+              <select
+                value={formData.stage}
+                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                className="glass-input text-xs bg-[#090c1a]"
+              >
+                <option value="Idea / Concept">Идея (Idea)</option>
+                <option value="MVP / Prototype">Прототип (MVP)</option>
+                <option value="Early Traction">Traction</option>
+                <option value="Scaling">Scaling</option>
+              </select>
             </div>
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full btn-violet text-xs py-3 font-semibold"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Опубликовать и получить +150 pts</span>
-          </button>
+          {/* Short Description */}
+          <div className="space-y-1.5">
+            <label className="form-label">Краткое описание (Elevator Pitch) *</label>
+            <textarea
+              required
+              rows={2}
+              value={formData.shortDesc}
+              onChange={(e) => setFormData({ ...formData, shortDesc: e.target.value })}
+              placeholder="Какую проблему решает проект и в чем ценность решения..."
+              className="glass-input text-xs !rounded-2xl"
+            />
+          </div>
+
+          {/* PDF Pitch Deck Upload Area */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="form-label !mb-0 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-[#663af3]" />
+                <span>PDF Презентация (Pitch Deck) *</span>
+              </label>
+              <span className="badge badge-teal font-mono text-[10px]">
+                Лимит: 10 MB
+              </span>
+            </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="application/pdf,.pdf"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {fileError && (
+              <div className="p-3 rounded-2xl bg-[rgba(228,109,76,0.15)] border border-[rgba(228,109,76,0.35)] flex items-center gap-2 text-xs text-[#ffab91]">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{fileError}</span>
+              </div>
+            )}
+
+            {!selectedFile ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-[rgba(186,215,247,0.18)] hover:border-[#663af3] bg-[rgba(186,214,247,0.02)] rounded-3xl p-5 text-center cursor-pointer transition-all space-y-2"
+              >
+                <UploadCloud className="w-8 h-8 text-[#663af3] mx-auto" />
+                <div>
+                  <p className="text-xs font-semibold text-white">Нажмите для выбора PDF-файла</p>
+                  <p className="text-[10px] text-[#9da7ba] mt-0.5">Формат .PDF · Максимально 10 MB</p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-[rgba(102,58,243,0.14)] border border-[rgba(102,58,243,0.35)] flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-[#663af3] flex items-center justify-center text-white shrink-0 shadow-[0_0_10px_rgba(102,58,243,0.5)]">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-white truncate">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-[10px] text-[#80cbc4] font-mono">
+                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB / 10 MB · Готов к загрузке
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setFileError('');
+                  }}
+                  className="p-1.5 rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[#ffab91]"
+                  title="Удалить файл"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Optional Direct PDF Link */}
+            <div className="pt-1">
+              <input
+                type="url"
+                value={formData.pdfUrl}
+                onChange={(e) => setFormData({ ...formData, pdfUrl: e.target.value })}
+                placeholder="Или вставьте ссылку на PDF файл"
+                className="glass-input text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Sync Notice */}
+          <div className="p-3.5 rounded-2xl bg-[rgba(102,58,243,0.08)] border border-[rgba(102,58,243,0.2)] flex items-center gap-2.5 text-xs text-[#d8ecf8]">
+            <ShieldCheck className="w-4 h-4 text-[#80cbc4] shrink-0" />
+            <span>Проект будет отправлен на модерацию команды Zhambyl Hub</span>
+          </div>
+
+          {/* Submit CTA */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={isUploading}
+              className="w-full btn-violet text-sm !py-4 font-bold justify-center rounded-full shadow-[0_6px_28px_rgba(102,58,243,0.5)]"
+            >
+              {isUploading ? 'Загрузка PDF в Supabase (до 10 MB)...' : 'Отправить проект на модерацию'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
