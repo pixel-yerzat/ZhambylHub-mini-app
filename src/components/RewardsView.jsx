@@ -23,9 +23,9 @@ export const RewardsView = () => {
   };
 
   return (
-    <div className="space-y-4 pb-6 px-4 pt-3">
+    <div className="app-main-content space-y-6 pt-4 pb-8">
       {/* Points Balance Card */}
-      <div className="glass-card p-5 space-y-2">
+      <div className="glass-card space-y-2">
         <div className="flex items-center justify-between">
           <div>
             <span className="text-[10px] text-[#9da7ba] uppercase font-mono tracking-wider">
@@ -51,7 +51,7 @@ export const RewardsView = () => {
       </div>
 
       {/* Subtabs Selector */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)]">
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] w-full">
         <button
           onClick={() => {
             hapticFeedback.selection();
@@ -100,70 +100,68 @@ export const RewardsView = () => {
 
       {/* Tab 1: Store */}
       {activeSubTab === 'store' && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 gap-2.5">
-            {rewards.map((item) => {
-              const canAfford = points >= item.price;
+        <div className="w-full flex flex-col gap-3">
+          {rewards.map((item) => {
+            const canAfford = points >= item.price;
 
-              return (
-                <div
-                  key={item.id}
-                  className="glass-card p-4 flex flex-col justify-between space-y-2.5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] flex items-center justify-center text-xl shrink-0">
-                      {item.icon}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="badge badge-violet text-[10px]">
-                          {item.tag}
-                        </span>
-                        <span className="font-mono text-xs font-semibold text-white flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-[#a78bfa]" />
-                          {item.price.toLocaleString()} pts
-                        </span>
-                      </div>
-
-                      <h4 className="font-display text-sm font-semibold text-white mt-1 leading-snug">
-                        {lang === 'ru' ? item.title : (item.titleKz || item.title)}
-                      </h4>
-                      <p className="text-xs text-[#9da7ba] mt-0.5 leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
+            return (
+              <div
+                key={item.id}
+                className="glass-card flex flex-col justify-between space-y-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] flex items-center justify-center text-xl shrink-0">
+                    {item.icon}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-[rgba(186,215,247,0.08)]">
-                    <span className="text-[10px] text-[#9da7ba] font-mono">
-                      Осталось: {item.inStock} шт.
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="badge badge-violet text-[10px]">
+                        {item.tag}
+                      </span>
+                      <span className="font-mono text-xs font-semibold text-white flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-[#a78bfa]" />
+                        {item.price.toLocaleString()} pts
+                      </span>
+                    </div>
 
-                    <button
-                      onClick={() => handleBuy(item)}
-                      disabled={!canAfford}
-                      className={`text-xs !py-1 !px-3 rounded-full font-medium transition-all ${
-                        canAfford
-                          ? 'btn-violet'
-                          : 'bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] text-[#9da7ba] cursor-not-allowed opacity-50'
-                      }`}
-                    >
-                      {canAfford 
-                        ? (lang === 'ru' ? 'Получить' : 'Алу') 
-                        : (lang === 'ru' ? `Не хватает ${item.price - points} pts` : `Жетпейді`)}
-                    </button>
+                    <h4 className="font-display text-sm font-semibold text-white mt-1 leading-snug">
+                      {lang === 'ru' ? item.title : (item.titleKz || item.title)}
+                    </h4>
+                    <p className="text-xs text-[#9da7ba] mt-0.5 leading-relaxed">
+                      {item.description}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-[rgba(186,215,247,0.08)]">
+                  <span className="text-[10px] text-[#9da7ba] font-mono">
+                    Осталось: {item.inStock} шт.
+                  </span>
+
+                  <button
+                    onClick={() => handleBuy(item)}
+                    disabled={!canAfford}
+                    className={`text-xs !py-1 !px-3 rounded-full font-medium transition-all ${
+                      canAfford
+                        ? 'btn-violet'
+                        : 'bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] text-[#9da7ba] cursor-not-allowed opacity-50'
+                    }`}
+                  >
+                    {canAfford 
+                      ? (lang === 'ru' ? 'Получить' : 'Алу') 
+                      : (lang === 'ru' ? `Не хватает ${item.price - points} pts` : `Жетпейді`)}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Tab 2: Leaderboard */}
       {activeSubTab === 'leaderboard' && (
-        <div className="space-y-3">
+        <div className="w-full">
           <div className="glass-card divide-y divide-[rgba(186,215,247,0.08)]">
             {leaderboard.map((lead) => (
               <div
@@ -201,7 +199,7 @@ export const RewardsView = () => {
 
       {/* Tab 3: My Purchases */}
       {activeSubTab === 'my_purchases' && (
-        <div className="space-y-3">
+        <div className="w-full">
           {purchasedItems.length === 0 ? (
             <div className="glass-card p-8 text-center space-y-2">
               <p className="text-sm font-semibold text-white">У вас пока нет купленных призов</p>
@@ -210,30 +208,32 @@ export const RewardsView = () => {
               </p>
             </div>
           ) : (
-            purchasedItems.map((item) => (
-              <div
-                key={item.id}
-                className="glass-card p-4 space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{item.icon}</span>
-                    <div>
-                      <h4 className="text-xs font-bold text-white">{item.title}</h4>
-                      <p className="text-[10px] text-[#9da7ba]">{item.date}</p>
+            <div className="flex flex-col gap-3">
+              {purchasedItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="glass-card space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{item.icon}</span>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">{item.title}</h4>
+                        <p className="text-[10px] text-[#9da7ba]">{item.date}</p>
+                      </div>
                     </div>
+                    <span className="badge badge-teal text-[10px]">К выдаче</span>
                   </div>
-                  <span className="badge badge-teal text-[10px]">К выдаче</span>
-                </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-[rgba(186,215,247,0.08)] text-xs">
-                  <span className="text-[#c7d3ea]">Код:</span>
-                  <span className="font-mono font-bold text-[#80cbc4]">
-                    {item.code}
-                  </span>
+                  <div className="flex items-center justify-between pt-2 border-t border-[rgba(186,215,247,0.08)] text-xs">
+                    <span className="text-[#c7d3ea]">Код:</span>
+                    <span className="font-mono font-bold text-[#80cbc4]">
+                      {item.code}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       )}

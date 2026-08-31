@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Sparkles, Calendar, Rocket, Presentation, ChevronRight, 
-  MapPin, Clock, Trophy, Flame, CheckCircle, Plus, ShieldCheck, 
-  Layers, Award, Cpu, Globe, Users
+  MapPin, Clock, Trophy, Flame, CheckCircle, Plus, 
+  Cpu, Users, Award
 } from 'lucide-react';
 import { hapticFeedback } from '../utils/telegram';
 
@@ -39,10 +39,10 @@ export const HomeView = ({ setActiveTab }) => {
   };
 
   return (
-    <div className="space-y-8 pb-8 px-5 pt-4">
-      {/* 1. Hero Section (AuthKit Centerpiece) */}
-      <div className="text-center pt-2 pb-1 space-y-4">
-        {/* Eyebrow Label */}
+    <div className="app-main-content">
+      {/* 1. Hero Section */}
+      <section className="hero-wrapper">
+        {/* Eyebrow */}
         <div className="eyebrow-container">
           <div className="eyebrow-line"></div>
           <span className="eyebrow-text">
@@ -51,97 +51,102 @@ export const HomeView = ({ setActiveTab }) => {
           <div className="eyebrow-line"></div>
         </div>
 
-        {/* Hero Display Wordmark */}
-        <div className="space-y-2">
-          <h1 className="font-display text-3xl md:text-4xl text-gradient-skywash tracking-tight leading-tight">
-            Zhambyl Hub
-          </h1>
-          <p className="text-sm text-[#c7d3ea] max-w-xs mx-auto leading-relaxed">
-            {lang === 'ru'
-              ? 'Единая платформа для участия в хакатонах, защиты проектов и просмотра презентаций.'
-              : 'Хакатондарға қатысу, жобаларды қорғау және таныстырылымдарды қарау платформасы.'}
-          </p>
-        </div>
+        {/* Wordmark */}
+        <h1 className="hero-title">
+          Zhambyl Hub
+        </h1>
 
-        {/* Floating Glass Overview Card */}
-        <div className="glass-card p-5 mx-auto max-w-sm mt-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="badge badge-violet">
-              {lang === 'ru' ? 'Экосистема Hub' : 'Hub Экожүйесі'}
-            </span>
-            <span className="text-xs font-mono text-[#9da7ba]">
-              {events.length} {lang === 'ru' ? 'ивента' : 'шара'} · {projects.length} {lang === 'ru' ? 'проектов' : 'жоба'}
-            </span>
-          </div>
+        {/* Subtitle */}
+        <p className="hero-subtitle">
+          {lang === 'ru'
+            ? 'Единая платформа для участия в хакатонах, защиты проектов и просмотра презентаций.'
+            : 'Хакатондарға қатысу, жобаларды қорғау және таныстырылымдарды қарау платформасы.'}
+        </p>
 
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <button
-              onClick={() => setActiveTab('events')}
-              className="btn-violet text-xs !py-2.5 !px-3 flex items-center justify-center gap-2 w-full"
-            >
-              <Calendar className="w-4 h-4" />
-              <span>{lang === 'ru' ? 'Мероприятия' : 'Шаралар'}</span>
-            </button>
-
-            <button
-              onClick={() => openModal('submit-project')}
-              className="btn-ghost-pill text-xs !py-2.5 !px-3 flex items-center justify-center gap-2 w-full"
-            >
-              <Plus className="w-4 h-4 text-[#663af3]" />
-              <span>{lang === 'ru' ? 'Подать проект' : 'Жоба қосу'}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Feature Icon Row (AuthKit 4-Feature Architecture) */}
-      <div className="py-2 border-y border-[rgba(186,215,247,0.08)]">
-        <div className="flex items-center justify-around">
-          <div 
-            onClick={() => setActiveTab('projects')}
-            className="flex flex-col items-center gap-2 cursor-pointer group"
-          >
-            <div className="feature-icon-tile group-hover:scale-105 transition-transform">
-              <Rocket className="w-5 h-5 text-[#d1e4fa]" />
-            </div>
-            <span className="text-xs text-[#c7d3ea] font-medium">Питч-деки</span>
-          </div>
-
-          <div 
+        {/* CTA Buttons */}
+        <div className="hero-actions-row">
+          <button
             onClick={() => setActiveTab('events')}
-            className="flex flex-col items-center gap-2 cursor-pointer group"
+            className="btn-violet"
           >
-            <div className="feature-icon-tile group-hover:scale-105 transition-transform">
-              <Calendar className="w-5 h-5 text-[#d1e4fa]" />
-            </div>
-            <span className="text-xs text-[#c7d3ea] font-medium">Хакатоны</span>
-          </div>
+            <Calendar className="w-4 h-4" />
+            <span>{lang === 'ru' ? 'Мероприятия' : 'Шаралар'}</span>
+          </button>
 
-          <div 
-            onClick={() => setActiveTab('projects')}
-            className="flex flex-col items-center gap-2 cursor-pointer group"
+          <button
+            onClick={() => openModal('submit-project')}
+            className="btn-ghost-pill"
           >
-            <div className="feature-icon-tile group-hover:scale-105 transition-transform">
-              <Cpu className="w-5 h-5 text-[#d1e4fa]" />
-            </div>
-            <span className="text-xs text-[#c7d3ea] font-medium">AI & Лаб</span>
-          </div>
+            <Plus className="w-4 h-4 text-[#663af3]" />
+            <span>{lang === 'ru' ? 'Подать проект' : 'Жоба қосу'}</span>
+          </button>
+        </div>
 
-          <div 
-            onClick={() => setActiveTab('rewards')}
-            className="flex flex-col items-center gap-2 cursor-pointer group"
-          >
-            <div className="feature-icon-tile group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 text-[#d1e4fa]" />
-            </div>
-            <span className="text-xs text-[#c7d3ea] font-medium">Баллы</span>
+        {/* 3-Column Stats Card */}
+        <div className="hero-stats-card">
+          <div className="stat-item">
+            <span className="stat-number">{events.length}</span>
+            <span className="stat-label">{lang === 'ru' ? 'Ивента' : 'Шара'}</span>
+          </div>
+          <div className="stat-item bordered">
+            <span className="stat-number">{projects.length}</span>
+            <span className="stat-label">{lang === 'ru' ? 'Стартапа' : 'Жоба'}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-number text-[#a78bfa]">{points.toLocaleString()}</span>
+            <span className="stat-label">{lang === 'ru' ? 'Ваши pts' : 'Ұпайыңыз'}</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 3. Hot Spotlight Event Card */}
+      {/* 2. Feature Icons Row */}
+      <section className="feature-nav-wrapper">
+        <div className="feature-nav-grid">
+          <button
+            onClick={() => setActiveTab('projects')}
+            className="feature-nav-btn"
+          >
+            <div className="feature-icon-circle">
+              <Rocket className="w-5 h-5" />
+            </div>
+            <span className="feature-nav-label">Питч-деки</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('events')}
+            className="feature-nav-btn"
+          >
+            <div className="feature-icon-circle">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <span className="feature-nav-label">Хакатоны</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('projects')}
+            className="feature-nav-btn"
+          >
+            <div className="feature-icon-circle">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <span className="feature-nav-label">AI & Лаб</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('rewards')}
+            className="feature-nav-btn"
+          >
+            <div className="feature-icon-circle">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <span className="feature-nav-label">Баллы</span>
+          </button>
+        </div>
+      </section>
+
+      {/* 3. Hot Spotlight Event */}
       {hotEvent && (
-        <div className="space-y-3">
+        <section className="section-wrapper">
           <div className="eyebrow-container">
             <div className="eyebrow-line"></div>
             <span className="eyebrow-text">
@@ -152,11 +157,11 @@ export const HomeView = ({ setActiveTab }) => {
 
           <div
             onClick={() => handleOpenEvent(hotEvent)}
-            className="glass-card p-6 cursor-pointer relative overflow-hidden group hover:border-[rgba(186,215,247,0.28)] transition-all space-y-3"
+            className="glass-card cursor-pointer group"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 mb-3">
               <span className="badge badge-violet">
-                {hotEvent.hasProjects ? '🚀 Хакатон с защитой проектов' : 'Воркшоп'}
+                {hotEvent.hasProjects ? '🚀 Хакатон с проектами' : 'Воркшоп'}
               </span>
               <span className="text-xs font-mono text-[#d8ecf8] flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-[#663af3]" />
@@ -168,12 +173,12 @@ export const HomeView = ({ setActiveTab }) => {
               {hotEvent.title}
             </h3>
 
-            <p className="text-xs text-[#c7d3ea] line-clamp-2 leading-relaxed">
+            <p className="text-xs text-[#c7d3ea] line-clamp-2 mt-2 leading-relaxed">
               {hotEvent.shortDesc}
             </p>
 
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-[rgba(186,215,247,0.08)] text-xs text-[#9da7ba]">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between pt-3 mt-4 border-t border-[rgba(186,215,247,0.08)] text-xs text-[#9da7ba]">
+              <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#663af3]" />
                 <span className="text-[#d1e4fa]">{hotEvent.date}</span>
               </div>
@@ -183,13 +188,13 @@ export const HomeView = ({ setActiveTab }) => {
               </div>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
-      {/* 4. Events with Filter Pills */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="font-display text-base font-semibold text-white">
+      {/* 4. Events Calendar Section */}
+      <section className="section-wrapper">
+        <div className="section-header">
+          <h3 className="section-title">
             {lang === 'ru' ? 'Календарь мероприятий' : 'Шаралар күнтізбесі'}
           </h3>
           <button
@@ -202,13 +207,13 @@ export const HomeView = ({ setActiveTab }) => {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex items-center justify-center flex-wrap gap-2">
           <button
             onClick={() => {
               hapticFeedback.selection();
               setEventFilter('all');
             }}
-            className={`btn-ghost-pill text-xs !py-2 !px-3.5 whitespace-nowrap ${eventFilter === 'all' ? 'btn-pill-active' : ''}`}
+            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 ${eventFilter === 'all' ? 'btn-pill-active' : ''}`}
           >
             {lang === 'ru' ? 'Все форматы' : 'Барлығы'}
           </button>
@@ -218,7 +223,7 @@ export const HomeView = ({ setActiveTab }) => {
               hapticFeedback.selection();
               setEventFilter('with_projects');
             }}
-            className={`btn-ghost-pill text-xs !py-2 !px-3.5 whitespace-nowrap ${eventFilter === 'with_projects' ? 'btn-pill-active' : ''}`}
+            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 ${eventFilter === 'with_projects' ? 'btn-pill-active' : ''}`}
           >
             🚀 {lang === 'ru' ? 'С защитой проектов' : 'Жобалармен'}
           </button>
@@ -228,14 +233,14 @@ export const HomeView = ({ setActiveTab }) => {
               hapticFeedback.selection();
               setEventFilter('without_projects');
             }}
-            className={`btn-ghost-pill text-xs !py-2 !px-3.5 whitespace-nowrap ${eventFilter === 'without_projects' ? 'btn-pill-active' : ''}`}
+            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 ${eventFilter === 'without_projects' ? 'btn-pill-active' : ''}`}
           >
             🎓 {lang === 'ru' ? 'Без проектов' : 'Жобасыз'}
           </button>
         </div>
 
-        {/* Events List Cards */}
-        <div className="space-y-3">
+        {/* Events Cards */}
+        <div className="flex flex-col gap-3">
           {filteredEvents.slice(0, 3).map((ev) => {
             const isRegistered = myTickets.some(t => t.eventId === ev.id);
 
@@ -243,15 +248,15 @@ export const HomeView = ({ setActiveTab }) => {
               <div
                 key={ev.id}
                 onClick={() => handleOpenEvent(ev)}
-                className="glass-card p-5 cursor-pointer transition-all active:scale-[0.99] space-y-2.5"
+                className="glass-card cursor-pointer transition-all active:scale-[0.99]"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2 mb-2">
                   <span className={`badge ${ev.hasProjects ? 'badge-violet' : 'badge-teal'}`}>
                     {ev.hasProjects ? 'С защитой проектов' : 'Лекция / Воркшоп'}
                   </span>
                   <div className="flex items-center gap-2">
                     {isRegistered && (
-                      <span className="badge badge-teal">✓ Билет есть</span>
+                      <span className="badge badge-teal">✓ Билет</span>
                     )}
                     <span className="font-mono text-xs text-[#a78bfa]">
                       +{ev.rewardPoints} pts
@@ -263,7 +268,7 @@ export const HomeView = ({ setActiveTab }) => {
                   {lang === 'ru' ? ev.title : (ev.titleKz || ev.title)}
                 </h4>
 
-                <div className="flex items-center justify-between text-xs text-[#9da7ba] pt-2 border-t border-[rgba(186,215,247,0.08)]">
+                <div className="flex items-center justify-between text-xs text-[#9da7ba] pt-3 mt-3 border-t border-[rgba(186,215,247,0.08)]">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-[#663af3]" />
                     <span>{ev.date}</span>
@@ -277,14 +282,14 @@ export const HomeView = ({ setActiveTab }) => {
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* 5. Interactive Pitch Decks */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
+      {/* 5. Pitch Decks Showcase */}
+      <section className="section-wrapper">
+        <div className="section-header">
           <div className="flex items-center gap-2">
             <Presentation className="w-4 h-4 text-[#663af3]" />
-            <h3 className="font-display text-base font-semibold text-white">
+            <h3 className="section-title">
               {lang === 'ru' ? 'Презентации стартапов' : 'Стартаптар таныстырылымы'}
             </h3>
           </div>
@@ -304,14 +309,14 @@ export const HomeView = ({ setActiveTab }) => {
         </p>
 
         {/* Deck Cards */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="flex flex-col gap-3">
           {featuredProjects.map((proj) => (
             <div
               key={proj.id}
               onClick={() => handleOpenDeck(proj)}
-              className="glass-card p-5 cursor-pointer transition-all group space-y-3"
+              className="glass-card cursor-pointer transition-all group"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] flex items-center justify-center text-xl shrink-0">
                     {proj.logoIcon}
@@ -326,7 +331,7 @@ export const HomeView = ({ setActiveTab }) => {
                   </div>
                 </div>
 
-                <span className="badge badge-violet font-mono text-[11px]">
+                <span className="badge badge-violet font-mono text-[11px] shrink-0">
                   {proj.presentation?.slidesCount || 5} слайдов
                 </span>
               </div>
@@ -335,7 +340,7 @@ export const HomeView = ({ setActiveTab }) => {
                 {proj.shortDesc}
               </p>
 
-              <div className="flex items-center justify-between pt-2 mt-1 border-t border-[rgba(186,215,247,0.08)] text-xs">
+              <div className="flex items-center justify-between pt-3 mt-3 border-t border-[rgba(186,215,247,0.08)] text-xs">
                 <span className="text-[#ffab91]">★ {proj.rating} ({proj.reviewsCount})</span>
                 <span className="text-[#d8ecf8] font-medium flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                   <span>{lang === 'ru' ? 'Смотреть слайды' : 'Слайдты көру'}</span>
@@ -345,7 +350,7 @@ export const HomeView = ({ setActiveTab }) => {
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 };

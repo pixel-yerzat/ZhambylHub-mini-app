@@ -49,9 +49,9 @@ export const ProfileView = () => {
   const roleInfo = getRoleBadgeStyle(user.role);
 
   return (
-    <div className="space-y-4 pb-8 px-5 pt-4">
+    <div className="app-main-content space-y-6 pt-4 pb-8">
       {/* Profile Header Card */}
-      <div className="glass-card p-6 space-y-4">
+      <div className="glass-card space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-14 h-14 rounded-full bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.18)] flex items-center justify-center font-display text-xl font-medium text-white shrink-0 shadow-[0_0_20px_rgba(102,58,243,0.3)]">
@@ -136,7 +136,7 @@ export const ProfileView = () => {
       </div>
 
       {/* Tabs Selector */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] overflow-x-auto no-scrollbar w-full">
         <button
           onClick={() => {
             hapticFeedback.selection();
@@ -200,7 +200,7 @@ export const ProfileView = () => {
 
       {/* Tab 1: Tickets */}
       {activeProfileTab === 'tickets' && (
-        <div className="space-y-3">
+        <div className="w-full flex flex-col gap-3">
           {myTickets.length === 0 ? (
             <div className="glass-card p-8 text-center space-y-2">
               <QrCode className="w-7 h-7 text-[#9da7ba] mx-auto opacity-40" />
@@ -214,7 +214,7 @@ export const ProfileView = () => {
               <div
                 key={ticket.id}
                 onClick={() => handleOpenTicket(ticket)}
-                className="glass-card p-5 cursor-pointer transition-all active:scale-[0.99] space-y-2.5 group"
+                className="glass-card cursor-pointer transition-all active:scale-[0.99] space-y-2.5 group"
               >
                 <div className="flex items-center justify-between">
                   <span className="badge badge-teal text-[10px]">
@@ -244,7 +244,7 @@ export const ProfileView = () => {
 
       {/* Tab 2: Projects */}
       {activeProfileTab === 'projects' && (
-        <div className="space-y-3">
+        <div className="w-full flex flex-col gap-3">
           <div className="flex items-center justify-between px-1">
             <h3 className="font-display text-xs font-semibold text-white uppercase">
               {lang === 'ru' ? 'Ваши проекты' : 'Жобаларыңыз'}
@@ -270,7 +270,7 @@ export const ProfileView = () => {
               <div
                 key={proj.id}
                 onClick={() => handleOpenDeck(proj)}
-                className="glass-card p-4 cursor-pointer transition-all space-y-2"
+                className="glass-card cursor-pointer transition-all space-y-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -297,7 +297,7 @@ export const ProfileView = () => {
 
       {/* Tab 3: History */}
       {activeProfileTab === 'history' && (
-        <div className="space-y-2.5">
+        <div className="w-full">
           <div className="glass-card divide-y divide-[rgba(186,215,247,0.08)]">
             {pointHistory.map((tx) => (
               <div key={tx.id} className="flex items-center justify-between p-3.5">
@@ -318,7 +318,7 @@ export const ProfileView = () => {
 
       {/* Tab 4: About */}
       {activeProfileTab === 'about' && (
-        <div className="glass-card p-5 space-y-3.5 text-xs">
+        <div className="glass-card space-y-3.5 text-xs">
           <div>
             <h3 className="font-display text-sm font-semibold text-gradient-skywash mb-1">
               Zhambyl Hub — Региональный IT-Хаб

@@ -41,9 +41,9 @@ export const ProjectsView = () => {
   };
 
   return (
-    <div className="space-y-4 pb-6 px-4 pt-3">
+    <div className="app-main-content space-y-6 pt-4 pb-8">
       {/* Header & Add Project Action */}
-      <div className="flex items-center justify-between">
+      <div className="w-full flex items-center justify-between">
         <div>
           <h1 className="font-display text-lg font-semibold text-gradient-skywash">
             {lang === 'ru' ? 'Каталог стартапов' : 'Стартаптар каталогы'}
@@ -55,7 +55,7 @@ export const ProjectsView = () => {
 
         <button
           onClick={() => openModal('submit-project')}
-          className="btn-violet text-xs !py-1.5 !px-3"
+          className="btn-violet text-xs !py-2 !px-3.5"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{lang === 'ru' ? 'Подать' : 'Қосу'}</span>
@@ -63,7 +63,7 @@ export const ProjectsView = () => {
       </div>
 
       {/* Search Input */}
-      <div className="relative">
+      <div className="relative w-full">
         <Search className="w-4 h-4 text-[#9da7ba] absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           type="text"
@@ -75,7 +75,7 @@ export const ProjectsView = () => {
       </div>
 
       {/* Sector Filter Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
         {tags.map((t) => (
           <button
             key={t.id}
@@ -83,7 +83,7 @@ export const ProjectsView = () => {
               hapticFeedback.selection();
               setSelectedTag(t.id);
             }}
-            className={`btn-ghost-pill text-xs !py-1.5 !px-3 whitespace-nowrap ${selectedTag === t.id ? 'btn-pill-active' : ''}`}
+            className={`btn-ghost-pill text-xs !py-1.5 !px-3.5 whitespace-nowrap ${selectedTag === t.id ? 'btn-pill-active' : ''}`}
           >
             {t.label}
           </button>
@@ -91,7 +91,7 @@ export const ProjectsView = () => {
       </div>
 
       {/* Projects Grid */}
-      <div className="space-y-3">
+      <div className="w-full flex flex-col gap-3.5">
         {filteredProjects.length === 0 ? (
           <div className="glass-card p-8 text-center space-y-2">
             <p className="text-sm font-semibold text-white">Проекты не найдены</p>
@@ -105,7 +105,7 @@ export const ProjectsView = () => {
               <div
                 key={proj.id}
                 onClick={() => handleOpenDeck(proj)}
-                className="glass-card p-4 cursor-pointer transition-all active:scale-[0.99] space-y-2.5 group"
+                className="glass-card cursor-pointer transition-all active:scale-[0.99] space-y-2.5 group"
               >
                 {/* Top Info */}
                 <div className="flex items-start justify-between gap-2">

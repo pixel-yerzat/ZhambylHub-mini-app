@@ -39,9 +39,9 @@ export const EventsView = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8 px-5 pt-4">
+    <div className="app-main-content space-y-6 pt-4 pb-8">
       {/* Top Header & Search */}
-      <div className="space-y-4">
+      <div className="w-full space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-xl font-semibold text-gradient-skywash">
@@ -59,7 +59,7 @@ export const EventsView = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="relative">
+        <div className="relative w-full">
           <Search className="w-4 h-4 text-[#9da7ba] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -71,7 +71,7 @@ export const EventsView = () => {
         </div>
 
         {/* Category Segmented Tabs */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)]">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] w-full">
           <button
             onClick={() => {
               hapticFeedback.selection();
@@ -118,7 +118,7 @@ export const EventsView = () => {
       </div>
 
       {/* Events Listing */}
-      <div className="space-y-4">
+      <div className="w-full flex flex-col gap-3.5">
         {filteredEvents.length === 0 ? (
           <div className="glass-card p-8 text-center space-y-2">
             <p className="text-sm font-semibold text-white">Мероприятия не найдены</p>
@@ -135,7 +135,7 @@ export const EventsView = () => {
               <div
                 key={ev.id}
                 onClick={() => handleOpenEvent(ev)}
-                className="glass-card p-5 cursor-pointer transition-all active:scale-[0.99] space-y-3 relative group"
+                className="glass-card cursor-pointer transition-all active:scale-[0.99] space-y-3 relative group"
               >
                 {/* Top Badge & Spots Info */}
                 <div className="flex items-center justify-between">
