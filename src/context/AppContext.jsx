@@ -1,30 +1,29 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getTelegramUser, getTelegramWebApp, getSystemTheme, hapticFeedback } from '../utils/telegram';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getTelegramUser, getTelegramWebApp, getSystemTheme, hapticFeedback } from '@/utils/telegram';
+import { AppContext } from './AppContextInstance';
 import { 
   syncUserProfileToSupabase, 
-  fetchUserProfileFromSupabase,
   fetchEventsFromSupabase,
   createEventInSupabase,
-  updateEventStatusInSupabase,
   fetchProjectsFromSupabase,
   createProjectInSupabase,
-  updateProjectStatusInSupabase,
   rateProjectInSupabase,
+  fetchWinningProjectsFromSupabase,
   fetchUserEventRegistrationsFromSupabase,
-  registerForEventInSupabase
-} from '../services/supabase';
-
-const AppContext = createContext(null);
+  registerForEventInSupabase,
+  hubApi
+} from '@/services';
+import { STORAGE_KEYS } from '@/constants/app';
+import { INITIAL_QUESTS, INITIAL_REWARDS, LEADERBOARD, INITIAL_PAST_WINNERS } from '@/data/mockData';
 
 export const AppProvider = ({ children }) => {
-  // 1. Theme (Auto-detects from device / Telegram & allows toggle)
+  // 1. Theme
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('zh_theme');
+    const saved = localStorage.getItem(STORAGE_KEYS.THEME);
     if (saved) return saved;
-    return getSystemTheme(); // 'light' | 'dark'
+    return getSystemTheme();
   });
 
-  // Apply theme to DOM and listen for OS / Telegram changes
   useEffect(() => {
     const applyTheme = (t) => {
       const activeTheme = t === 'system' ? getSystemTheme() : t;
@@ -39,12 +38,11 @@ export const AppProvider = ({ children }) => {
     };
 
     applyTheme(theme);
-    localStorage.setItem('zh_theme', theme);
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
 
-    // Listen to Telegram WebApp Theme changes
     const tg = getTelegramWebApp();
     const handleTgTheme = () => {
-      if (theme === 'system' || !localStorage.getItem('zh_theme')) {
+      if (theme === 'system' || !localStorage.getItem(STORAGE_KEYS.THEME)) {
         const newTheme = tg?.colorScheme || getSystemTheme();
         setTheme(newTheme);
         applyTheme(newTheme);
@@ -55,21 +53,20 @@ export const AppProvider = ({ children }) => {
       tg.onEvent('themeChanged', handleTgTheme);
     }
 
-    // Listen to OS prefers-color-scheme
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
     const handleOsTheme = (e) => {
-      if (theme === 'system' || !localStorage.getItem('zh_theme')) {
+      if (theme === 'system' || !localStorage.getItem(STORAGE_KEYS.THEME)) {
         const newTheme = e.matches ? 'dark' : 'light';
         setTheme(newTheme);
         applyTheme(newTheme);
       }
     };
 
-    mediaQuery.addEventListener?.('change', handleOsTheme);
+    mediaQuery?.addEventListener?.('change', handleOsTheme);
 
     return () => {
       if (tg?.offEvent) tg.offEvent('themeChanged', handleTgTheme);
-      mediaQuery.removeEventListener?.('change', handleOsTheme);
+      mediaQuery?.removeEventListener?.('change', handleOsTheme);
     };
   }, [theme]);
 
@@ -80,72 +77,80 @@ export const AppProvider = ({ children }) => {
 
   // 2. User & Language
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('zh_user');
+    const saved = localStorage.getItem(STORAGE_KEYS.USER);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore invalid JSON */ }
     }
     const baseUser = getTelegramUser();
     return {
       ...baseUser,
-      role: null,
-      roleTitle: 'Резидент',
-      skillsOrInterest: '',
-      hasOnboarded: false
+      role: 'developer',
+      roleTitle: 'Разработчик',
+      skillsOrInterest: 'Fullstack / AI Developer',
+      hasOnboarded: true
     };
   });
 
   const [lang, setLang] = useState(() => {
-    return localStorage.getItem('zh_lang') || 'ru';
+    return localStorage.getItem(STORAGE_KEYS.LANG) || 'ru';
   });
 
   // 3. Events & Registrations
   const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('zh_events');
+    const saved = localStorage.getItem(STORAGE_KEYS.EVENTS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore invalid JSON */ }
     }
     return [];
   });
 
   const [myRegistrations, setMyRegistrations] = useState(() => {
-    const saved = localStorage.getItem('zh_registrations');
+    const saved = localStorage.getItem(STORAGE_KEYS.REGISTRATIONS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore invalid JSON */ }
     }
     return [];
   });
 
   // 4. Projects & PDF Pitch Decks
   const [projects, setProjects] = useState(() => {
-    const saved = localStorage.getItem('zh_projects');
+    const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore invalid JSON */ }
     }
     return [];
   });
 
   // 5. Reviewed Presentations
   const [reviewedPresentations, setReviewedPresentations] = useState(() => {
-    const saved = localStorage.getItem('zh_reviewed_decks');
+    const saved = localStorage.getItem(STORAGE_KEYS.REVIEWED_DECKS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore invalid JSON */ }
     }
     return [];
   });
 
-  // 6. Modals & Toasts
+  // 6. Rewards, Points, Quests
+  const [points, setPoints] = useState(120);
+  const [rewards] = useState(INITIAL_REWARDS);
+  const [quests] = useState(INITIAL_QUESTS);
+  const [leaderboard] = useState(LEADERBOARD);
+  const [pastWinners, setPastWinners] = useState(INITIAL_PAST_WINNERS);
+  const [purchasedItems, setPurchasedItems] = useState([]);
+
+  // 7. Modals & Toasts
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch real data from Supabase on mount
+  // Fetch real data from Supabase & Backend on mount
   useEffect(() => {
     const loadFromSupabase = async () => {
       setIsLoading(true);
 
       // 1. Fetch Events
-      const dbEvents = await fetchEventsFromSupabase(user.role === 'moderator');
+      const dbEvents = await fetchEventsFromSupabase();
       if (dbEvents) {
         setEvents(dbEvents.map(e => ({
           id: e.id,
@@ -168,7 +173,7 @@ export const AppProvider = ({ children }) => {
       }
 
       // 2. Fetch Projects
-      const dbProjects = await fetchProjectsFromSupabase(user.role === 'moderator');
+      const dbProjects = await fetchProjectsFromSupabase();
       if (dbProjects) {
         setProjects(dbProjects.map(p => ({
           id: p.id,
@@ -186,14 +191,43 @@ export const AppProvider = ({ children }) => {
           pdfDeckUrl: p.pdf_deck_url,
           pdfDeckName: p.pdf_deck_name,
           pdfDeckSize: p.pdf_deck_size,
-          status: p.status,
+          status: p.status || 'approved',
           rating: Number(p.rating) || 5.0,
           reviewsCount: p.reviews_count || 1,
           metrics: p.metrics || []
         })));
       }
 
-      // 3. Fetch Event Registrations for current user
+      // 3. Fetch Past Winners from Supabase 'winning_projects' table / Backend API
+      const dbWinners = await fetchWinningProjectsFromSupabase();
+      if (dbWinners && dbWinners.length > 0) {
+        setPastWinners(dbWinners.map(w => ({
+          id: w.id,
+          title: w.title,
+          description: w.description,
+          category: w.category,
+          eventName: w.event_name,
+          year: w.year_or_date || '2024',
+          track: w.winning_track,
+          features: w.key_features || []
+        })));
+      } else {
+        const apiWinners = await hubApi.getPastWinners();
+        if (apiWinners && apiWinners.length > 0) {
+          setPastWinners(apiWinners.map(w => ({
+            id: w.id,
+            title: w.title,
+            description: w.description,
+            category: w.category,
+            eventName: w.event_name || w.eventName,
+            year: w.year_or_date || w.year || '2024',
+            track: w.winning_track || w.track,
+            features: w.key_features || w.features || []
+          })));
+        }
+      }
+
+      // 4. Fetch User Registrations
       if (user.id) {
         const dbRegs = await fetchUserEventRegistrationsFromSupabase(user.id);
         if (dbRegs) {
@@ -203,15 +237,14 @@ export const AppProvider = ({ children }) => {
             eventTitle: r.event_title,
             attendeeName: r.attendee_name,
             attendeePhone: r.attendee_phone,
-            telegramUsername: r.telegram_username,
             registrationType: r.registration_type,
             projectName: r.project_name,
             projectDesc: r.project_desc,
             teamMembers: r.team_members,
-            pdfDeckUrl: r.pdf_deck_url,
             demoUrl: r.demo_or_github_url,
+            pdfDeckUrl: r.pdf_deck_url,
             status: r.status,
-            createdAt: r.created_at
+            createdAt: r.created_at ? new Date(r.created_at).toLocaleDateString('ru-RU') : '2026'
           })));
         }
       }
@@ -220,37 +253,41 @@ export const AppProvider = ({ children }) => {
     };
 
     loadFromSupabase();
-  }, [user.id, user.role]);
+  }, [user.id]);
 
   // Persist Local State
   useEffect(() => {
-    localStorage.setItem('zh_user', JSON.stringify(user));
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('zh_events', JSON.stringify(events));
+    localStorage.setItem(STORAGE_KEYS.LANG, lang);
+  }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
   }, [events]);
 
   useEffect(() => {
-    localStorage.setItem('zh_projects', JSON.stringify(projects));
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem('zh_registrations', JSON.stringify(myRegistrations));
+    localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(myRegistrations));
   }, [myRegistrations]);
 
   useEffect(() => {
-    localStorage.setItem('zh_reviewed_decks', JSON.stringify(reviewedPresentations));
+    localStorage.setItem(STORAGE_KEYS.REVIEWED_DECKS, JSON.stringify(reviewedPresentations));
   }, [reviewedPresentations]);
 
   // Toast
-  const showToast = (title, message) => {
+  const showToast = useCallback((title, message) => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, title, message }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3800);
-  };
+  }, []);
 
   // Update Role & Sync
   const updateUserRole = async (roleData) => {
@@ -273,12 +310,123 @@ export const AppProvider = ({ children }) => {
     return updatedUser;
   };
 
-  // Register for Event (Listener or Pitch Team)
+  // Register for Event (Listener or Pitch Team with Gemini AI Competition Verification)
   const registerForEvent = async (event, registrationData) => {
     const isAlready = myRegistrations.some(r => r.eventId === event.id || r.event_id === event.id);
     if (isAlready) {
       showToast('Вы уже зарегистрированы!', 'Запись сохранена в профиле');
-      return false;
+      return { success: false, error: 'Вы уже зарегистрированы на это событие' };
+    }
+
+    let aiVerdict = null;
+    let finalStatus = 'confirmed';
+    let rejectionReason = null;
+    let similarityScore = null;
+
+    // 🤖 IF registering as Pitch Team / Project for competition, run Google Gemini AI Verification!
+    const isPitchRegistration = Boolean(
+      (registrationData.registrationType === 'pitch_team' || 
+       registrationData.registrationType === 'pitch_project' ||
+       registrationData.isPitch ||
+       event.hasProjects) && 
+      registrationData.projectName?.trim()
+    );
+
+    if (isPitchRegistration) {
+      const backendResult = await hubApi.submitProject({
+        name: registrationData.projectName.trim(),
+        short_desc: registrationData.projectDesc || 'Проект на хакатоне / соревновании',
+        category: registrationData.projectCategory || 'AI & IT Solutions',
+        stage: registrationData.projectStage || 'MVP / Prototype',
+        tag: 'Hackathon',
+        founder_name: registrationData.attendeeName || `${user.firstName} ${user.lastName}`.trim(),
+        founder_phone: registrationData.attendeePhone || user.phone || '',
+        founder_role: 'Hackathon Team Lead',
+        team_members: registrationData.teamMembers || '',
+        demo_url: registrationData.demoOrGithubUrl || '',
+        logo_icon: '🚀',
+        pdf_deck_url: registrationData.pdfDeckUrl || null,
+        event_id: event.id,
+        event_title: event.title
+      }, user.id);
+
+      const status = backendResult?.data?.status || backendResult?.status;
+      if (status) {
+        finalStatus = status;
+        aiVerdict = backendResult?.data?.ai_analysis || backendResult?.ai_analysis || null;
+        rejectionReason = backendResult?.data?.rejection_reason || backendResult?.rejection_reason || backendResult?.message || null;
+        similarityScore = backendResult?.data?.similarity_score ?? backendResult?.similarity_score ?? null;
+
+        // If AI rejects due to past winner or duplicate submission for competition
+        if (finalStatus === 'rejected_duplicate' || finalStatus === 'rejected_past_winner' || finalStatus === 'rejected') {
+          showToast('Заявка отклонена AI', rejectionReason || 'Проект не допущен к соревнованию (дубликат или прошлый победитель).');
+          return {
+            success: false,
+            status: finalStatus,
+            rejectionReason,
+            similarityScore,
+            aiAnalysis: aiVerdict
+          };
+        }
+      } else if (backendResult && backendResult.success === false && !backendResult.isNetworkError) {
+        showToast('Ошибка проверки', backendResult.error || 'Не удалось отправить проект на проверку.');
+        return {
+          success: false,
+          error: backendResult.error || 'Ошибка проверки проекта'
+        };
+      }
+
+      // If backend was offline, fallback to direct Supabase project insert
+      if (backendResult?.isNetworkError) {
+        const projectPayload = {
+          name: registrationData.projectName.trim(),
+          category: registrationData.projectCategory || 'AI & IT Solutions',
+          tag: 'Hackathon',
+          stage: registrationData.projectStage || 'MVP / Prototype',
+          short_desc: registrationData.projectDesc || 'Проект для участия в хакатоне',
+          founder_id: user.id,
+          founder_name: registrationData.attendeeName || `${user.firstName} ${user.lastName}`.trim(),
+          founder_phone: registrationData.attendeePhone || '',
+          team_members: registrationData.teamMembers || '',
+          demo_url: registrationData.demoOrGithubUrl || '',
+          logo_icon: '🚀',
+          pdf_deck_url: registrationData.pdfDeckUrl || null,
+          pdf_deck_name: registrationData.pdfFileName || 'pitch_deck.pdf',
+          pdf_deck_size: registrationData.pdfFileSize || '2.0 MB',
+          status: finalStatus === 'manual_review' ? 'manual_review' : 'approved'
+        };
+
+        const projectRes = await createProjectInSupabase(projectPayload);
+        if (projectRes?.success && projectRes.data) {
+          setProjects(prev => [projectRes.data, ...prev]);
+        }
+      } else if (backendResult?.data) {
+        // Backend already saved the project to Supabase, update local state
+        setProjects(prev => [
+          {
+            id: backendResult.data.id,
+            name: backendResult.data.name || registrationData.projectName.trim(),
+            category: backendResult.data.category || registrationData.projectCategory || 'AI & IT Solutions',
+            tag: 'Hackathon',
+            stage: registrationData.projectStage || 'MVP / Prototype',
+            shortDesc: registrationData.projectDesc || 'Проект для участия в хакатоне',
+            founder: registrationData.attendeeName || `${user.firstName} ${user.lastName}`.trim(),
+            founderId: user.id,
+            founderPhone: registrationData.attendeePhone || '',
+            teamMembers: registrationData.teamMembers || '',
+            demoUrl: registrationData.demoOrGithubUrl || '',
+            logoIcon: '🚀',
+            pdfDeckUrl: registrationData.pdfDeckUrl || null,
+            pdfDeckName: registrationData.pdfFileName || 'pitch_deck.pdf',
+            pdfDeckSize: registrationData.pdfFileSize || '2.0 MB',
+            status: finalStatus === 'manual_review' ? 'manual_review' : 'approved',
+            rating: 5.0,
+            reviewsCount: 1,
+            metrics: []
+          },
+          ...prev.filter(p => p.id !== backendResult.data.id)
+        ]);
+      }
     }
 
     const newReg = {
@@ -296,40 +444,79 @@ export const AppProvider = ({ children }) => {
       projectCategory: registrationData.projectCategory || null,
       demoUrl: registrationData.demoOrGithubUrl || null,
       pdfDeckUrl: registrationData.pdfDeckUrl || null,
-      status: 'confirmed',
+      status: finalStatus === 'manual_review' ? 'manual_review' : 'confirmed',
+      aiAnalysis: aiVerdict,
+      similarityScore,
+      rejectionReason,
       createdAt: new Date().toLocaleDateString('ru-RU')
     };
 
+    // Save to Supabase (only if not already created by backend pitch submission)
+    if (!isPitchRegistration || !backendResult?.success) {
+      const dbRegRes = await registerForEventInSupabase({
+        event_id: String(event.id).length === 36 ? event.id : null,
+        event_title: event.title,
+        user_id: user.id,
+        attendee_name: newReg.attendeeName,
+        attendee_phone: newReg.attendeePhone,
+        telegram_username: newReg.telegramUsername,
+        registration_type: newReg.registrationType,
+        project_name: newReg.projectName,
+        project_desc: newReg.projectDesc,
+        team_members: newReg.teamMembers,
+        project_stage: newReg.projectStage,
+        project_category: newReg.projectCategory,
+        demo_or_github_url: newReg.demoUrl,
+        pdf_deck_url: newReg.pdfDeckUrl,
+        status: newReg.status
+      });
+
+      if (dbRegRes?.success && dbRegRes.data?.id) {
+        newReg.id = dbRegRes.data.id;
+      }
+    }
+
     setMyRegistrations(prev => [newReg, ...prev]);
 
-    // Save to Supabase
-    await registerForEventInSupabase({
-      event_id: String(event.id).length === 36 ? event.id : null,
-      event_title: event.title,
-      user_id: user.id,
-      attendee_name: newReg.attendeeName,
-      attendee_phone: newReg.attendeePhone,
-      telegram_username: newReg.telegramUsername,
-      registration_type: newReg.registrationType,
-      project_name: newReg.projectName,
-      project_desc: newReg.projectDesc,
-      team_members: newReg.teamMembers,
-      project_stage: newReg.projectStage,
-      project_category: newReg.projectCategory,
-      demo_or_github_url: newReg.demoUrl,
-      pdf_deck_url: newReg.pdfDeckUrl,
-      status: 'confirmed'
-    });
-
-    showToast('Регистрация подтверждена!', 'Уведомление придет в Telegram перед началом.');
+    showToast('Регистрация подтверждена!', 'Запись сохранена в профиле.');
     hapticFeedback.impact('heavy');
-    return newReg;
+    return { success: true, registration: newReg, status: finalStatus, aiAnalysis: aiVerdict };
   };
 
-  // Add Project with PDF Pitch Deck
+  // Add Project with Google Gemini AI Verification Service
   const addNewProject = async (projectData) => {
+    let aiVerdict = null;
+    let finalStatus = 'approved';
+    let rejectionReason = null;
+    let similarityScore = null;
+
+    // 1. Submit to Gemini AI Verification Service Backend
+    const backendResult = await hubApi.submitProject({
+      name: projectData.name,
+      short_desc: projectData.shortDesc,
+      category: projectData.category || 'AI & IT Solutions',
+      stage: projectData.stage || 'Idea / MVP',
+      tag: projectData.tag || 'Startup',
+      founder_name: `${user.firstName} ${user.lastName}`.trim() || 'Zhambyl Innovator',
+      founder_phone: projectData.founderPhone || user.phone || '',
+      founder_role: user.roleTitle || 'Founder & Team Lead',
+      team_members: projectData.teamMembers || '',
+      demo_url: projectData.demoUrl || '',
+      logo_icon: projectData.logoIcon || 'Rocket',
+      pdf_deck_url: projectData.pdfDeckUrl || null,
+      event_id: projectData.eventId || null,
+      event_title: projectData.eventTitle || null
+    }, user.id);
+
+    if (backendResult?.success && backendResult.data) {
+      finalStatus = backendResult.data.status || 'approved';
+      aiVerdict = backendResult.data.ai_analysis || null;
+      rejectionReason = backendResult.data.rejection_reason || null;
+      similarityScore = backendResult.data.similarity_score ?? null;
+    }
+
     const newProj = {
-      id: `proj-${Date.now()}`,
+      id: backendResult?.data?.id || `proj-${Date.now()}`,
       name: projectData.name,
       category: projectData.category || 'AI & IT Solutions',
       tag: projectData.tag || 'Startup',
@@ -348,40 +535,63 @@ export const AppProvider = ({ children }) => {
       pdfDeckUrl: projectData.pdfDeckUrl,
       pdfDeckName: projectData.pdfDeckName || 'pitch_deck.pdf',
       pdfDeckSize: projectData.pdfDeckSize || '2.4 MB',
-      status: projectData.status || 'approved',
+      status: finalStatus,
+      aiAnalysis: aiVerdict,
+      similarityScore,
+      rejectionReason,
       metrics: [
-        { label: 'Статус', value: projectData.status === 'pending' ? 'На модерации' : 'Опубликован' },
+        { label: 'Статус', value: finalStatus === 'approved' ? 'Одобрен AI' : 'Проверка AI' },
         { label: 'Питч-дек', value: 'PDF загружен' },
         { label: 'Питч', value: 'Готов к защите' }
       ]
     };
 
+    // 2. Direct Supabase insertion only if backend was offline / unreachable
+    if (backendResult?.isNetworkError) {
+      const supabaseRes = await createProjectInSupabase({
+        name: newProj.name,
+        category: newProj.category,
+        tag: newProj.tag,
+        stage: newProj.stage,
+        short_desc: newProj.shortDesc,
+        founder_id: user.id,
+        founder_name: newProj.founder,
+        founder_phone: newProj.founderPhone,
+        team_members: newProj.teamMembers,
+        demo_url: newProj.demoUrl,
+        logo_icon: newProj.logoIcon,
+        pdf_deck_url: newProj.pdfDeckUrl,
+        pdf_deck_name: newProj.pdfDeckName,
+        pdf_deck_size: newProj.pdfDeckSize,
+        status: newProj.status
+      });
+
+      if (supabaseRes?.success && supabaseRes.data?.id) {
+        newProj.id = supabaseRes.data.id;
+      }
+    }
+
     setProjects(prev => [newProj, ...prev]);
 
-    // Sync to Supabase
-    await createProjectInSupabase({
-      name: newProj.name,
-      category: newProj.category,
-      tag: newProj.tag,
-      stage: newProj.stage,
-      short_desc: newProj.shortDesc,
-      founder_id: user.id,
-      founder_name: newProj.founder,
-      founder_phone: newProj.founderPhone,
-      team_members: newProj.teamMembers,
-      demo_url: newProj.demoUrl,
-      logo_icon: newProj.logoIcon,
-      pdf_deck_url: newProj.pdfDeckUrl,
-      pdf_deck_name: newProj.pdfDeckName,
-      pdf_deck_size: newProj.pdfDeckSize,
-      status: newProj.status
-    });
+    if (finalStatus === 'approved') {
+      showToast('Проект одобрен AI!', 'Прошел проверку на оригинальность и зарегистрирован.');
+    } else if (finalStatus === 'rejected_duplicate' || finalStatus === 'rejected_past_winner') {
+      showToast('Заявка отклонена AI', rejectionReason || 'Проект не прошел проверку на уникальность.');
+    } else {
+      showToast('Заявка принята', 'Отправлена на рассмотрение жюри.');
+    }
 
-    showToast('Питч-дек успешно загружен!', 'Проект отправлен в базу Supabase');
-    return newProj;
+    return {
+      project: newProj,
+      backendResult,
+      status: finalStatus,
+      aiAnalysis: aiVerdict,
+      rejectionReason,
+      similarityScore
+    };
   };
 
-  // Add Event (Moderator / Organizer)
+  // Add Event
   const addNewEvent = async (eventData) => {
     const newEv = {
       id: `ev-${Date.now()}`,
@@ -422,31 +632,6 @@ export const AppProvider = ({ children }) => {
     return newEv;
   };
 
-  // Moderation
-  const approveProject = async (projectId) => {
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: 'approved' } : p));
-    await updateProjectStatusInSupabase(projectId, 'approved');
-    showToast('Стартап одобрен!', 'Проект опубликован в каталоге');
-  };
-
-  const rejectProject = async (projectId) => {
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: 'rejected' } : p));
-    await updateProjectStatusInSupabase(projectId, 'rejected');
-    showToast('Проект отклонен', 'Статус обновлен в Supabase');
-  };
-
-  const approveEvent = async (eventId) => {
-    setEvents(prev => prev.map(e => e.id === eventId ? { ...e, status: 'approved' } : e));
-    await updateEventStatusInSupabase(eventId, 'approved');
-    showToast('Ивент опубликован!', 'Мероприятие доступно в календаре');
-  };
-
-  const rejectEvent = async (eventId) => {
-    setEvents(prev => prev.map(e => e.id === eventId ? { ...e, status: 'rejected' } : e));
-    await updateEventStatusInSupabase(eventId, 'rejected');
-    showToast('Ивент отклонен', 'Статус обновлен');
-  };
-
   // Rate Project
   const ratePresentation = async (projectId, ratings, comment) => {
     const hasReviewed = reviewedPresentations.includes(projectId);
@@ -481,17 +666,25 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  const openModal = (type, data = null) => {
+  const purchaseReward = (reward) => {
+    if (points >= reward.price) {
+      setPoints(prev => prev - reward.price);
+      setPurchasedItems(prev => [...prev, reward.id]);
+      showToast('Награда получена!', `Вы обменяли ${reward.price} pts на ${reward.title}`);
+    }
+  };
+
+  const openModal = useCallback((type, data = null) => {
     hapticFeedback.impact('light');
     setActiveModal(type);
     setModalData(data);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     hapticFeedback.impact('light');
     setActiveModal(null);
     setModalData(null);
-  };
+  }, []);
 
   return (
     <AppContext.Provider value={{
@@ -505,16 +698,19 @@ export const AppProvider = ({ children }) => {
       setLang,
       events,
       addNewEvent,
-      approveEvent,
-      rejectEvent,
       myRegistrations,
       registerForEvent,
       projects,
       addNewProject,
-      approveProject,
-      rejectProject,
+      pastWinners,
       ratePresentation,
       reviewedPresentations,
+      points,
+      rewards,
+      quests,
+      leaderboard,
+      purchasedItems,
+      purchaseReward,
       activeModal,
       modalData,
       openModal,
@@ -528,10 +724,3 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
-  return context;
-};

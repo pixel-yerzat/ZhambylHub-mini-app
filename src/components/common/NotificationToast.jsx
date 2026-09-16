@@ -1,11 +1,11 @@
 import React from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '@/context';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const NotificationToast = () => {
   const { toasts } = useApp();
 
-  if (toasts.length === 0) return null;
+  if (!toasts || toasts.length === 0) return null;
 
   return (
     <div className="fixed top-16 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none">

@@ -15,6 +15,9 @@ export const initTelegramApp = () => {
     tg.ready();
     tg.expand();
     try {
+      tg.setHeaderColor?.('#05060f');
+      tg.setBackgroundColor?.('#05060f');
+      tg.setBottomBarColor?.('#05060f');
       tg.enableClosingConfirmation?.();
     } catch (e) {
       console.warn('Telegram closing confirmation not supported', e);

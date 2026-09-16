@@ -1,7 +1,7 @@
 import React from 'react';
 import { Home, Calendar, Rocket, User } from 'lucide-react';
-import { hapticFeedback } from '../utils/telegram';
-import { useApp } from '../context/AppContext';
+import { hapticFeedback } from '@/utils/telegram';
+import { useApp } from '@/context';
 
 export const BottomNav = ({ activeTab, setActiveTab }) => {
   const { lang, myRegistrations } = useApp();
