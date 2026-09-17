@@ -4,17 +4,25 @@
  * Reference: INTEGRATION_GUIDE.md
  */
 
+import { getTelegramWebApp } from '@/utils/telegram';
+
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:4000';
 
 /**
- * Standard request headers with user ID authorization
+ * Standard request headers with Telegram initData & user ID authorization
  */
 function getHeaders(userId = null) {
   const headers = {
     'Content-Type': 'application/json',
   };
 
+  const tg = getTelegramWebApp();
+  if (tg?.initData) {
+    headers['x-telegram-init-data'] = tg.initData;
+  }
+
   if (userId) {
+    headers['x-telegram-user-id'] = String(userId);
     headers['x-user-id'] = String(userId);
   }
 

@@ -14,7 +14,6 @@ import {
   hubApi
 } from '@/services';
 import { STORAGE_KEYS } from '@/constants/app';
-import { INITIAL_PAST_WINNERS } from '@/data/mockData';
 
 export const AppProvider = ({ children }) => {
   // 1. Theme
@@ -134,8 +133,8 @@ export const AppProvider = ({ children }) => {
     return [];
   });
 
-  // 6. Past Hackathon Winners (for AI originality checking)
-  const [pastWinners, setPastWinners] = useState(INITIAL_PAST_WINNERS);
+  // 6. Past Hackathon Winners (loaded strictly from Supabase / API)
+  const [pastWinners, setPastWinners] = useState([]);
 
   // 7. Modals & Toasts
   const [activeModal, setActiveModal] = useState(null);

@@ -95,9 +95,9 @@ export const SubmitProjectModal = () => {
 
     const result = await addNewProject({
       ...formData,
-      pdfDeckUrl: uploadedPdfUrl || (selectedFile ? URL.createObjectURL(selectedFile) : null),
-      pdfDeckName: formData.pdfFileName || 'pitch_deck.pdf',
-      pdfDeckSize: formData.pdfFileSize || '1.8 MB'
+      pdfDeckUrl: uploadedPdfUrl || null,
+      pdfDeckName: formData.pdfFileName || (uploadedPdfUrl ? 'pitch_deck.pdf' : ''),
+      pdfDeckSize: formData.pdfFileSize || (uploadedPdfUrl ? '1.8 MB' : '')
     });
 
     setIsUploading(false);
@@ -390,9 +390,13 @@ export const SubmitProjectModal = () => {
               <button
                 type="submit"
                 disabled={isUploading}
-                className="btn-violet w-full py-3 text-sm flex items-center justify-center gap-2"
+                className="btn-violet w-full py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                <Rocket className="w-4 h-4" />
+                {isUploading ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Rocket className="w-4 h-4" />
+                )}
                 <span>
                   {isUploading 
                     ? (lang === 'ru' ? 'AI проверка...' : 'Тексерілуде...') 
