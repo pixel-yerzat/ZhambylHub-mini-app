@@ -57,28 +57,6 @@ export const hapticFeedback = {
   }
 };
 
-export const getTelegramUser = () => {
-  const tg = getTelegramWebApp();
-  if (tg?.initDataUnsafe?.user) {
-    return {
-      id: tg.initDataUnsafe.user.id,
-      firstName: tg.initDataUnsafe.user.first_name || 'Инноватор',
-      lastName: tg.initDataUnsafe.user.last_name || '',
-      username: tg.initDataUnsafe.user.username || 'zhambyl_member',
-      photoUrl: tg.initDataUnsafe.user.photo_url || null,
-      isTelegram: true
-    };
-  }
-
-  return {
-    id: '777001',
-    firstName: 'Yerzat',
-    lastName: 'Innovator',
-    username: 'yerzat_taraz',
-    photoUrl: null,
-    isTelegram: false
-  };
-};
 
 export const openTelegramLink = (url) => {
   const tg = getTelegramWebApp();

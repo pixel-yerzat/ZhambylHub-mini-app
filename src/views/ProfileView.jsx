@@ -20,7 +20,10 @@ export const ProfileView = () => {
 
   const [activeProfileTab, setActiveProfileTab] = useState('registrations');
 
-  const userProjects = projects.filter(p => p.founder?.includes(user.firstName) || p.founderId === user.id || p.founder?.includes('Yerzat'));
+  const userProjects = projects.filter(p => 
+    (user.id && p.founderId === user.id) || 
+    (user.firstName && p.founder && p.founder.toLowerCase().includes(user.firstName.toLowerCase()))
+  );
 
   const handleOpenDeck = (proj) => {
     hapticFeedback.impact('light');
@@ -49,21 +52,18 @@ export const ProfileView = () => {
             {/* Avatar with gradient border */}
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#663af3] to-[#80cbc4] p-[2px] shrink-0 shadow-[0_0_16px_rgba(102,58,243,0.35)]">
               <div className="w-full h-full rounded-[14px] bg-[#05060f] flex items-center justify-center font-display text-base font-bold text-white">
-                {user.firstName ? user.firstName[0] : 'Z'}
+                {user.firstName ? user.firstName[0].toUpperCase() : 'Z'}
               </div>
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h2 className="font-display text-sm font-bold text-white truncate">
-                  {user.firstName} {user.lastName}
+                  {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (lang === 'ru' ? 'Участник Hub' : 'Hub Қатысушысы')}
                 </h2>
-                {user.isTelegram && (
-                  <span className="w-2 h-2 rounded-full bg-[#269684]" title="Telegram Verified" />
-                )}
               </div>
               <span className="text-xs text-[#9da7ba] font-mono truncate block">
-                @{user.username || 'zhambyl_member'}
+                {user.username ? `@${user.username}` : (user.phone || `ID: ${user.id ? user.id.slice(0, 10) : 'resident'}`)}
               </span>
             </div>
           </div>
@@ -73,7 +73,7 @@ export const ProfileView = () => {
             className="btn-ghost-pill !py-1.5 !px-2.5 text-xs text-[#c7d3ea] hover:border-[#663af3] flex items-center gap-1.5 shrink-0"
           >
             <Edit3 className="w-3.5 h-3.5 text-[#663af3]" />
-            <span>{lang === 'ru' ? 'Роль' : 'Рөл'}</span>
+            <span>{lang === 'ru' ? 'Профиль' : 'Профиль'}</span>
           </button>
         </div>
 

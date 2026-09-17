@@ -7,7 +7,6 @@ import {
   HomeView, 
   EventsView, 
   ProjectsView, 
-  RewardsView, 
   ProfileView 
 } from '@/views';
 import { 
@@ -37,8 +36,6 @@ function AppContent() {
         return <EventsView />;
       case 'projects':
         return <ProjectsView />;
-      case 'rewards':
-        return <RewardsView />;
       case 'profile':
         return <ProfileView />;
       default:

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '@/context';
 import { 
   Star, ExternalLink, FileText, 
-  CheckCircle2, Sparkles, Rocket 
+  CheckCircle2, Sparkles, Rocket,
+  AlertCircle, AlertTriangle, RefreshCw 
 } from 'lucide-react';
 import { hapticFeedback } from '@/utils/telegram';
 import { ModalStackSheet } from '@/components/common/ModalStackSheet';
@@ -141,26 +142,36 @@ export const PresentationViewerModal = () => {
                     />
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[rgba(102,58,243,0.18)] flex items-center justify-center text-[#d8ecf8]">
-                        <FileText className="w-6 h-6 text-[#a78bfa]" />
+                      <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                        <AlertTriangle className="w-7 h-7" />
                       </div>
-                      <div>
-                        <h4 className="font-display text-sm font-bold text-white">
-                          Презентация {project.pdfDeckName || 'pitch_deck.pdf'}
+                      <div className="max-w-xs space-y-1">
+                        <h4 className="font-display text-sm font-bold text-amber-200">
+                          Ошибка: не удалось открыть презентацию
                         </h4>
-                        <p className="text-xs text-[#9da7ba] mt-1">
-                          PDF файл доступен для просмотра во встроенном браузере
+                        <p className="text-xs text-[#9da7ba] leading-relaxed">
+                          Файл презентации поврежден, недоступен или не может быть отображен во встроенном просмотрщике.
                         </p>
                       </div>
-                      <a
-                        href={pdfUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-violet py-2 px-4 text-xs inline-flex items-center gap-2"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Открыть PDF файл</span>
-                      </a>
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setIframeError(false)}
+                          className="btn-ghost-pill py-2 px-3 text-xs inline-flex items-center gap-1.5"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          <span>Попробовать снова</span>
+                        </button>
+                        <a
+                          href={pdfUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-violet py-2 px-3 text-xs inline-flex items-center gap-1.5"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Открыть в браузере</span>
+                        </a>
+                      </div>
                     </div>
                   )}
 
@@ -185,15 +196,15 @@ export const PresentationViewerModal = () => {
                 </div>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[rgba(186,214,247,0.06)] border border-[rgba(186,215,247,0.12)] flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-[#9da7ba]" />
+                  <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+                    <AlertCircle className="w-7 h-7" />
                   </div>
-                  <div>
-                    <h4 className="font-display text-sm font-bold text-white">
-                      Презентация ещё не загружена
+                  <div className="max-w-xs space-y-1">
+                    <h4 className="font-display text-sm font-bold text-red-300">
+                      Ошибка: презентация не найдена
                     </h4>
-                    <p className="text-xs text-[#9da7ba] mt-1">
-                      Фаундер проекта пока не прикрепил PDF питч-дек
+                    <p className="text-xs text-[#9da7ba] leading-relaxed">
+                      Презентация (PDF питч-дек) для данного проекта отсутствует или не была прикреплена фаундером.
                     </p>
                   </div>
                 </div>

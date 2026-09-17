@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { 
   getTelegramWebApp, 
-  getTelegramUser, 
   initTelegramApp, 
   hapticFeedback, 
   openTelegramLink, 
@@ -9,7 +8,7 @@ import {
 } from '@/utils/telegram';
 
 /**
- * Custom React Hook for Telegram WebApp SDK
+ * Custom React Hook for Telegram WebApp viewport and styling integration
  */
 export const useTelegram = () => {
   const tg = useMemo(() => getTelegramWebApp(), []);
@@ -20,7 +19,6 @@ export const useTelegram = () => {
 
   return {
     tg,
-    user: getTelegramUser(),
     haptics: hapticFeedback,
     openLink: openTelegramLink,
     systemTheme: getSystemTheme(),

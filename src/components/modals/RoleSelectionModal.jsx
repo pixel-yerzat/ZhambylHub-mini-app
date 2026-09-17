@@ -11,6 +11,9 @@ export const RoleSelectionModal = () => {
   const { user, updateUserRole, lang, closeModal } = useApp();
 
   const [selectedRole, setSelectedRole] = useState(user.role || 'developer');
+  const [firstName, setFirstName] = useState(user.firstName || '');
+  const [lastName, setLastName] = useState(user.lastName || '');
+  const [phone, setPhone] = useState(user.phone || '');
   const [skillsOrInterest, setSkillsOrInterest] = useState(user.skillsOrInterest || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,6 +39,9 @@ export const RoleSelectionModal = () => {
     const roleObj = roles.find(r => r.id === selectedRole);
 
     await updateUserRole({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      phone: phone.trim(),
       role: selectedRole,
       roleTitle: roleObj?.title.split('/')[0].trim() || 'Резидент',
       skillsOrInterest: skillsOrInterest.trim() || roleObj?.defaultTag || ''
@@ -113,8 +119,49 @@ export const RoleSelectionModal = () => {
             })}
           </div>
 
+          {/* User Name & Phone Input Fields */}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[rgba(186,215,247,0.1)]">
+            <div>
+              <label className="block text-[11px] font-mono text-[#9da7ba] uppercase mb-1">
+                {lang === 'ru' ? 'Имя' : 'Атыңыз'}
+              </label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Алихан"
+                className="glass-input text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-mono text-[#9da7ba] uppercase mb-1">
+                {lang === 'ru' ? 'Фамилия' : 'Тегіңіз'}
+              </label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Смаилов"
+                className="glass-input text-xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-mono text-[#9da7ba] uppercase mb-1">
+              {lang === 'ru' ? 'Телефон / WhatsApp' : 'Телефон / WhatsApp'}
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+7 (707) 123-45-67"
+              className="glass-input text-xs"
+            />
+          </div>
+
           {/* Optional Skills Input */}
-          <div className="pt-2">
+          <div>
             <label className="block text-[11px] font-mono text-[#9da7ba] uppercase mb-1">
               {lang === 'ru' ? 'Ваш стек технологий или проект (опционально)' : 'Технологиялық стек немесе жоба'}
             </label>

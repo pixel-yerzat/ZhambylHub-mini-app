@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getTelegramUser, getTelegramWebApp, getSystemTheme, hapticFeedback } from '@/utils/telegram';
+import { getTelegramWebApp, getSystemTheme, hapticFeedback } from '@/utils/telegram';
 import { AppContext } from './AppContextInstance';
 import { 
   syncUserProfileToSupabase, 
@@ -14,7 +14,7 @@ import {
   hubApi
 } from '@/services';
 import { STORAGE_KEYS } from '@/constants/app';
-import { INITIAL_QUESTS, INITIAL_REWARDS, LEADERBOARD, INITIAL_PAST_WINNERS } from '@/data/mockData';
+import { INITIAL_PAST_WINNERS } from '@/data/mockData';
 
 export const AppProvider = ({ children }) => {
   // 1. Theme
@@ -81,13 +81,17 @@ export const AppProvider = ({ children }) => {
     if (saved) {
       try { return JSON.parse(saved); } catch { /* ignore invalid JSON */ }
     }
-    const baseUser = getTelegramUser();
+    const localId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     return {
-      ...baseUser,
+      id: localId,
+      firstName: '',
+      lastName: '',
+      username: '',
+      phone: '',
       role: 'developer',
       roleTitle: 'Разработчик',
-      skillsOrInterest: 'Fullstack / AI Developer',
-      hasOnboarded: true
+      skillsOrInterest: '',
+      hasOnboarded: false
     };
   });
 
@@ -130,13 +134,8 @@ export const AppProvider = ({ children }) => {
     return [];
   });
 
-  // 6. Rewards, Points, Quests
-  const [points, setPoints] = useState(120);
-  const [rewards] = useState(INITIAL_REWARDS);
-  const [quests] = useState(INITIAL_QUESTS);
-  const [leaderboard] = useState(LEADERBOARD);
+  // 6. Past Hackathon Winners (for AI originality checking)
   const [pastWinners, setPastWinners] = useState(INITIAL_PAST_WINNERS);
-  const [purchasedItems, setPurchasedItems] = useState([]);
 
   // 7. Modals & Toasts
   const [activeModal, setActiveModal] = useState(null);
@@ -293,17 +292,20 @@ export const AppProvider = ({ children }) => {
   const updateUserRole = async (roleData) => {
     const updatedUser = {
       ...user,
-      role: roleData.role,
-      roleTitle: roleData.roleTitle,
-      skillsOrInterest: roleData.skillsOrInterest,
+      firstName: roleData.firstName !== undefined ? roleData.firstName : user.firstName,
+      lastName: roleData.lastName !== undefined ? roleData.lastName : user.lastName,
+      phone: roleData.phone !== undefined ? roleData.phone : user.phone,
+      role: roleData.role || user.role,
+      roleTitle: roleData.roleTitle || user.roleTitle,
+      skillsOrInterest: roleData.skillsOrInterest !== undefined ? roleData.skillsOrInterest : user.skillsOrInterest,
       hasOnboarded: true
     };
 
     setUser(updatedUser);
 
     const result = await syncUserProfileToSupabase(updatedUser);
-    if (result.success) {
-      showToast('Профиль сохранен в Supabase!', `Роль: ${roleData.roleTitle}`);
+    if (result?.success) {
+      showToast('Профиль сохранен в Supabase!', `Роль: ${updatedUser.roleTitle}`);
     }
 
     closeModal();
@@ -322,6 +324,7 @@ export const AppProvider = ({ children }) => {
     let finalStatus = 'confirmed';
     let rejectionReason = null;
     let similarityScore = null;
+    let backendResult = null;
 
     // 🤖 IF registering as Pitch Team / Project for competition, run Google Gemini AI Verification!
     const isPitchRegistration = Boolean(
@@ -333,7 +336,7 @@ export const AppProvider = ({ children }) => {
     );
 
     if (isPitchRegistration) {
-      const backendResult = await hubApi.submitProject({
+      backendResult = await hubApi.submitProject({
         name: registrationData.projectName.trim(),
         short_desc: registrationData.projectDesc || 'Проект на хакатоне / соревновании',
         category: registrationData.projectCategory || 'AI & IT Solutions',
@@ -666,14 +669,6 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  const purchaseReward = (reward) => {
-    if (points >= reward.price) {
-      setPoints(prev => prev - reward.price);
-      setPurchasedItems(prev => [...prev, reward.id]);
-      showToast('Награда получена!', `Вы обменяли ${reward.price} pts на ${reward.title}`);
-    }
-  };
-
   const openModal = useCallback((type, data = null) => {
     hapticFeedback.impact('light');
     setActiveModal(type);
@@ -705,12 +700,6 @@ export const AppProvider = ({ children }) => {
       pastWinners,
       ratePresentation,
       reviewedPresentations,
-      points,
-      rewards,
-      quests,
-      leaderboard,
-      purchasedItems,
-      purchaseReward,
       activeModal,
       modalData,
       openModal,

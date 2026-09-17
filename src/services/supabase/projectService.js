@@ -79,7 +79,7 @@ export const createProjectInSupabase = async (projectData) => {
       team_members: projectData.team_members || '',
       demo_url: projectData.demo_url || '',
       logo_icon: projectData.logo_icon || '🚀',
-      pdf_deck_url: projectData.pdf_deck_url || 'https://birryaoupzjceqzmgdlr.supabase.co/storage/v1/object/public/pitch_decks/default.pdf',
+      pdf_deck_url: projectData.pdf_deck_url || null,
       pdf_deck_name: projectData.pdf_deck_name || 'pitch_deck.pdf',
       pdf_deck_size: projectData.pdf_deck_size || '2.4 MB',
       status: projectData.status || 'approved',
@@ -116,7 +116,7 @@ export const createProjectInSupabase = async (projectData) => {
         team_members: projectData.team_members || '',
         demo_url: projectData.demo_url || '',
         logo_icon: projectData.logo_icon || '🚀',
-        pdf_deck_url: projectData.pdf_deck_url || 'https://birryaoupzjceqzmgdlr.supabase.co/storage/v1/object/public/pitch_decks/default.pdf',
+        pdf_deck_url: projectData.pdf_deck_url || null,
         pdf_deck_name: projectData.pdf_deck_name || 'pitch_deck.pdf',
         pdf_deck_size: projectData.pdf_deck_size || '2.4 MB',
         status: projectData.status || 'approved'

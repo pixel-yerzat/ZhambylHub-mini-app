@@ -16,7 +16,6 @@ export const syncUserProfileToSupabase = async (userData) => {
     role: userData.role || 'community',
     role_title: userData.roleTitle || 'Резидент Hub',
     skills_or_interest: userData.skillsOrInterest || '',
-    is_telegram: !!userData.isTelegram,
     updated_at: new Date().toISOString()
   };
 

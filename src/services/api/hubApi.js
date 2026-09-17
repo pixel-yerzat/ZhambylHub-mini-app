@@ -7,21 +7,15 @@
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:4000';
 
 /**
- * Standard request headers with Telegram WebApp initData authorization
+ * Standard request headers with user ID authorization
  */
 function getHeaders(userId = null) {
-  const initData = window.Telegram?.WebApp?.initData || '';
   const headers = {
     'Content-Type': 'application/json',
   };
 
-  if (initData) {
-    headers['x-telegram-init-data'] = initData;
-  } else if (userId) {
-    // Development fallback when running in browser outside Telegram
-    headers['x-telegram-user-id'] = String(userId);
-  } else {
-    headers['x-telegram-user-id'] = '682910412';
+  if (userId) {
+    headers['x-user-id'] = String(userId);
   }
 
   return headers;

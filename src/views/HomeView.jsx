@@ -101,7 +101,7 @@ export const HomeView = ({ setActiveTab }) => {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-white truncate">
-                  {user.firstName || 'Инноватор'} {user.lastName || ''}
+                  {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (lang === 'ru' ? 'Участник Hub' : 'Hub Қатысушысы')}
                 </span>
                 <RoleBadge role={user.role} roleTitle={user.roleTitle} size="xs" />
               </div>

@@ -370,7 +370,7 @@ export const EventDetailModal = () => {
                     required
                     value={regForm.attendeeName}
                     onChange={(e) => setRegForm({ ...regForm, attendeeName: e.target.value })}
-                    placeholder="Yerzat Innovator"
+                    placeholder="Алихан Смаилов"
                     className="glass-input text-xs"
                   />
                 </div>
